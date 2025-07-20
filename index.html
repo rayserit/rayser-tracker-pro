@@ -4,7 +4,12 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>GameTracker Pro</title>
+  <!-- Add Firebase SDKs -->
+  <script src="https://www.gstatic.com/firebasejs/9.6.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.6.0/firebase-auth-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.6.0/firebase-database-compat.js"></script>
   <style>
+    /* Added: Global box-sizing to prevent padding/border issues */
     *, *:before, *:after {
       box-sizing: border-box;
     }
@@ -56,6 +61,206 @@
       --text-secondary: #aaa;
     }
 
+    /* Auth Modal Styles */
+    .auth-modal {
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background: rgba(0, 0, 0, 0.7);
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      z-index: 1000;
+      opacity: 0;
+      visibility: hidden;
+      transition: all 0.3s ease;
+    }
+    
+    .auth-modal.active {
+      opacity: 1;
+      visibility: visible;
+    }
+    
+    .auth-container {
+      background: var(--game-bg);
+      border-radius: 12px;
+      width: 100%;
+      max-width: 400px;
+      padding: 2rem;
+      box-shadow: 0 10px 25px rgba(0, 0, 0, 0.2);
+      transform: translateY(20px);
+      transition: transform 0.3s ease;
+    }
+    
+    .auth-modal.active .auth-container {
+      transform: translateY(0);
+    }
+    
+    .auth-header {
+      text-align: center;
+      margin-bottom: 1.5rem;
+    }
+    
+    .auth-header h2 {
+      color: var(--primary);
+      margin-bottom: 0.5rem;
+    }
+    
+    .auth-tabs {
+      display: flex;
+      margin-bottom: 1.5rem;
+      border-bottom: 1px solid var(--divider-color);
+    }
+    
+    .auth-tab {
+      flex: 1;
+      text-align: center;
+      padding: 0.75rem;
+      cursor: pointer;
+      font-weight: 600;
+      color: var(--text-secondary);
+      transition: all 0.2s ease;
+      border-bottom: 2px solid transparent;
+    }
+    
+    .auth-tab.active {
+      color: var(--primary);
+      border-bottom-color: var(--primary);
+    }
+    
+    .auth-form {
+      display: none;
+    }
+    
+    .auth-form.active {
+      display: block;
+    }
+    
+    .auth-form-group {
+      margin-bottom: 1rem;
+    }
+    
+    .auth-form-group label {
+      display: block;
+      margin-bottom: 0.5rem;
+      font-weight: 500;
+      color: var(--text-primary);
+    }
+    
+    .auth-form-group input {
+      width: 100%;
+      padding: 0.75rem;
+      border-radius: 8px;
+      border: 1px solid var(--divider-color);
+      background: var(--backlog-bg);
+      color: var(--text-primary);
+      font-size: 1rem;
+      transition: all 0.2s ease;
+    }
+    
+    .auth-form-group input:focus {
+      outline: none;
+      border-color: var(--primary);
+      box-shadow: 0 0 0 3px rgba(58, 134, 255, 0.2);
+    }
+    
+    .auth-submit-btn {
+      width: 100%;
+      padding: 0.75rem;
+      border-radius: 8px;
+      background: var(--primary);
+      color: white;
+      font-weight: 600;
+      border: none;
+      cursor: pointer;
+      margin-top: 1rem;
+      transition: all 0.2s ease;
+    }
+    
+    .auth-submit-btn:hover {
+      background: #2a75e6;
+      transform: translateY(-1px);
+    }
+    
+    .auth-footer {
+      text-align: center;
+      margin-top: 1.5rem;
+      color: var(--text-secondary);
+    }
+    
+    .auth-footer a {
+      color: var(--primary);
+      text-decoration: none;
+      font-weight: 500;
+      cursor: pointer;
+    }
+    
+    .auth-error {
+      color: var(--danger);
+      font-size: 0.9rem;
+      margin-top: 0.5rem;
+      text-align: center;
+    }
+    
+    .auth-success {
+      color: var(--success);
+      font-size: 0.9rem;
+      margin-top: 0.5rem;
+      text-align: center;
+    }
+    
+    .auth-loading {
+      display: inline-block;
+      width: 20px;
+      height: 20px;
+      border: 3px solid rgba(255, 255, 255, 0.3);
+      border-radius: 50%;
+      border-top-color: white;
+      animation: spin 1s ease-in-out infinite;
+      margin-right: 8px;
+      vertical-align: middle;
+    }
+    
+    .user-profile {
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+      margin-bottom: 1rem;
+    }
+    
+    .user-avatar {
+      width: 40px;
+      height: 40px;
+      border-radius: 50%;
+      background: var(--primary);
+      color: white;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: bold;
+      text-transform: uppercase;
+    }
+    
+    .user-email {
+      font-size: 0.9rem;
+      color: var(--text-secondary);
+    }
+    
+    .logout-btn {
+      background: none;
+      border: none;
+      color: var(--danger);
+      cursor: pointer;
+      font-size: 0.9rem;
+      display: flex;
+      align-items: center;
+      gap: 0.25rem;
+      padding: 0.25rem;
+      margin-left: auto;
+    }
+    
     h1, h2, h3 {
       margin-top: 0;
       font-weight: 600;
@@ -895,201 +1100,220 @@
         margin: 0 auto;
       }
     }
-        #authContainer {
-      margin-left: auto;
-      display: flex;
-      gap: 0.5rem;
-      align-items: center;
-    }
-    #userInfo {
-      display: none;
-      align-items: center;
-      gap: 0.5rem;
-    }
-    #userAvatar {
-      height: 32px;
-      width: 32px;
-      border-radius: 50%;
-      border: 2px solid var(--primary);
-    }
-    .btn-auth {
-      padding: 0.5rem 1rem;
-      font-size: 0.9rem;
-      display: flex;
-      align-items: center;
-      gap: 0.5rem;
-    }
-    .google-icon {
-      height: 16px;
-      width: 16px;
-    }
-    #sync-status {
-      font-size: 0.8rem;
-      z-index: 1000;
-      box-shadow: 0 2px 5px rgba(0,0,0,0.2);
-    }
   </style>
 </head>
 <body>
-  <div class="header-container">
-      <div id="authContainer">
-      <button id="signInBtn" class="btn-secondary btn-auth">
-        <img src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg" class="google-icon">
-        Sign In
-      </button>
-      <div id="userInfo">
-        <img id="userAvatar">
-        <button id="signOutBtn" class="btn-danger">Sign Out</button>
+  <!-- Auth Modal -->
+  <div class="auth-modal" id="authModal">
+    <div class="auth-container">
+      <div class="auth-header">
+        <h2>GameTracker Pro</h2>
+        <p>Accedi o registrati per sincronizzare i tuoi giochi</p>
+      </div>
+      
+      <div class="auth-tabs">
+        <div class="auth-tab active" id="loginTab">Accedi</div>
+        <div class="auth-tab" id="registerTab">Registrati</div>
+      </div>
+      
+      <div class="auth-form active" id="loginForm">
+        <div class="auth-form-group">
+          <label for="loginEmail">Email</label>
+          <input type="email" id="loginEmail" placeholder="tua@email.com">
+        </div>
+        <div class="auth-form-group">
+          <label for="loginPassword">Password</label>
+          <input type="password" id="loginPassword" placeholder="••••••••">
+        </div>
+        <button class="auth-submit-btn" id="loginBtn">
+          <span id="loginBtnText">Accedi</span>
+        </button>
+        <div class="auth-error" id="loginError"></div>
+      </div>
+      
+      <div class="auth-form" id="registerForm">
+        <div class="auth-form-group">
+          <label for="registerEmail">Email</label>
+          <input type="email" id="registerEmail" placeholder="tua@email.com">
+        </div>
+        <div class="auth-form-group">
+          <label for="registerPassword">Password</label>
+          <input type="password" id="registerPassword" placeholder="••••••••">
+        </div>
+        <div class="auth-form-group">
+          <label for="registerPasswordConfirm">Conferma Password</label>
+          <input type="password" id="registerPasswordConfirm" placeholder="••••••••">
+        </div>
+        <button class="auth-submit-btn" id="registerBtn">
+          <span id="registerBtnText">Registrati</span>
+        </button>
+        <div class="auth-error" id="registerError"></div>
+        <div class="auth-success" id="registerSuccess"></div>
+      </div>
+      
+      <div class="auth-footer">
+        <a id="forgotPasswordLink">Password dimenticata?</a>
       </div>
     </div>
   </div>
-    <div class="header-left">
-      <h1>GameTracker Pro</h1>
+
+  <!-- Main App Content (hidden until authenticated) -->
+  <div id="appContent" style="display: none;">
+    <div class="header-container">
+      <div class="header-left">
+        <h1>GameTracker Pro</h1>
+        
+        <div class="controls-row">
+          <div class="search-container">
+            <input type="text" id="gameSearch" placeholder="Cerca giochi..." aria-label="Cerca giochi" />
+          </div>
+          
+          <div class="filter-controls">
+            <select id="sortSelect" aria-label="Ordina giochi">
+              <option value="name-asc">Nome (A-Z)</option>
+              <option value="name-desc">Nome (Z-A)</option>
+              <option value="played">Giocati prima</option>
+              <option value="platinum">Con platino</option>
+            </select>
+            
+            <button id="toggleThemeBtn" class="theme-toggle" title="Cambia tema" aria-label="Cambia tema">🌙</button>
+          </div>
+        </div>
+      </div>
       
-      <div class="controls-row">
-        <div class="search-container">
-          <input type="text" id="gameSearch" placeholder="Cerca giochi..." aria-label="Cerca giochi" />
+      <div class="header-right">
+        <div class="user-profile">
+          <div class="user-avatar" id="userAvatar">U</div>
+          <div class="user-email" id="userEmail">user@example.com</div>
+          <button class="logout-btn" id="logoutBtn">
+            <span>Esci</span>
+          </button>
         </div>
         
-        <div class="filter-controls">
-          <select id="sortSelect" aria-label="Ordina giochi">
-            <option value="name-asc">Nome (A-Z)</option>
-            <option value="name-desc">Nome (Z-A)</option>
-            <option value="played">Giocati prima</option>
-            <option value="platinum">Con platino</option>
-          </select>
-          
-          <button id="toggleThemeBtn" class="theme-toggle" title="Cambia tema" aria-label="Cambia tema">🌙</button>
-        </div>
-      </div>
-    </div>
-    
-    <div class="header-right">
-      <div class="compact-stats">
-        <div class="stat-item">
-          <div class="stat-value" id="statTotal">0</div>
-          <div class="stat-label">Totale</div>
-        </div>
-        <div class="stat-item">
-          <div class="stat-value" id="statCurrent">0</div>
-          <div class="stat-label">In Corso</div>
-        </div>
-        <div class="stat-item">
-          <div class="stat-value" id="statBacklog">0</div>
-          <div class="stat-label">Backlog</div>
-        </div>
-        <div class="stat-item">
-          <div class="stat-value" id="statCompleted">0</div>
-          <div class="stat-label">Completati</div>
-        </div>
-        <div class="stat-item">
-          <div class="stat-value" id="statPlatinum">0</div>
-          <div class="stat-label">Platini</div>
-        </div>
-      </div>
-      
-      <div class="controls-row">
-        <div class="add-game-menu-btn">
-          <button id="addGameBtn" class="btn-primary">Aggiungi gioco</button>
-          <div class="add-game-menu">
-            <input type="text" id="newGameName" placeholder="Nome del gioco" required aria-label="Nome del gioco" />
-            <div class="cover-dropdown">
-              <input type="text" id="coverSearch" placeholder="🔍 Cerca copertina su IGDB..." aria-label="Cerca copertina" />
-              <div id="coverResults" class="cover-search-results"></div>
-            </div>
-            <input type="hidden" id="selectedCoverUrl" />
-            <button type="button" id="submitGame" class="btn-primary" style="width: 100%;">Salva</button>
+        <div class="compact-stats">
+          <div class="stat-item">
+            <div class="stat-value" id="statTotal">0</div>
+            <div class="stat-label">Totale</div>
+          </div>
+          <div class="stat-item">
+            <div class="stat-value" id="statCurrent">0</div>
+            <div class="stat-label">In Corso</div>
+          </div>
+          <div class="stat-item">
+            <div class="stat-value" id="statBacklog">0</div>
+            <div class="stat-label">Backlog</div>
+          </div>
+          <div class="stat-item">
+            <div class="stat-value" id="statCompleted">0</div>
+            <div class="stat-label">Completati</div>
+          </div>
+          <div class="stat-item">
+            <div class="stat-value" id="statPlatinum">0</div>
+            <div class="stat-label">Platini</div>
           </div>
         </div>
         
-        <button id="resetBtn" class="btn-danger">Reset tracker</button>
-        <button id="exportBtn" class="btn-success">Esporta dati</button>
-        <input type="file" id="importFile" accept=".json" title="Importa dati JSON" style="display: none;" />
-        <button id="importBtn" class="btn-secondary">Importa dati</button>
-        <button id="syncBtn" class="btn-secondary">🔄 Sync Now</button>
+        <div class="controls-row">
+          <div class="add-game-menu-btn">
+            <button id="addGameBtn" class="btn-primary">Aggiungi gioco</button>
+            <div class="add-game-menu">
+              <input type="text" id="newGameName" placeholder="Nome del gioco" required aria-label="Nome del gioco" />
+              <div class="cover-dropdown">
+                <input type="text" id="coverSearch" placeholder="🔍 Cerca copertina su IGDB..." aria-label="Cerca copertina" />
+                <div id="coverResults" class="cover-search-results"></div>
+              </div>
+              <input type="hidden" id="selectedCoverUrl" />
+              <button type="button" id="submitGame" class="btn-primary" style="width: 100%;">Salva</button>
+            </div>
+          </div>
+          
+          <button id="resetBtn" class="btn-danger">Reset tracker</button>
+          <button id="exportBtn" class="btn-success">Esporta dati</button>
+          <input type="file" id="importFile" accept=".json" title="Importa dati JSON" style="display: none;" />
+          <button id="importBtn" class="btn-secondary">Importa dati</button>
+        </div>
       </div>
     </div>
-  </div>
 
-  <div class="games-section current-section">
-    <div class="section-header">
-      <h2 class="section-title">Giochi in Corso</h2>
-      <span class="game-count" id="currentCount">0</span>
-    </div>
-    <div class="current-grid drop-zone" id="currentGrid"></div>
-  </div>
-
-  <div class="split-section">
-    <div class="games-section backlog-column">
+    <div class="games-section current-section">
       <div class="section-header">
-        <h2 class="section-title">Backlog</h2>
-        <span class="game-count" id="backlogCount">0</span>
+        <h2 class="section-title">Giochi in Corso</h2>
+        <span class="game-count" id="currentCount">0</span>
       </div>
-      <div class="game-grid drop-zone" id="backlogGrid"></div>
+      <div class="current-grid drop-zone" id="currentGrid"></div>
+    </div>
+
+    <div class="split-section">
+      <div class="games-section backlog-column">
+        <div class="section-header">
+          <h2 class="section-title">Backlog</h2>
+          <span class="game-count" id="backlogCount">0</span>
+        </div>
+        <div class="game-grid drop-zone" id="backlogGrid"></div>
+      </div>
+      
+      <div class="games-section completed-column">
+        <div class="section-header">
+          <h2 class="section-title">Completati</h2>
+          <span class="game-count" id="completedCount">0</span>
+        </div>
+        <div class="game-grid drop-zone" id="completedGrid"></div>
+      </div>
+    </div>
+
+    <div id="contextMenu" class="context-menu">
+      <div class="context-menu-item" id="cmRename">✏️ Cambia nome</div>
+      <div class="context-menu-item" id="cmChangeImage">🖼️ Cambia immagine</div>
+      <div class="context-menu-item" id="cmToggleCurrent">🎮 Segna come in corso</div>
+      <div class="context-menu-divider"></div>
+      <div class="context-menu-item" id="cmTogglePlatinum">🏆 Toggle platino</div>
+      <div class="context-menu-divider"></div>
+      <div class="context-menu-item" id="cmQuickMove">🚀 Sposta rapido a...</div>
+      <div class="context-menu-divider"></div>
+      <div class="context-menu-item" id="cmDelete" style="color: var(--danger);">❌ Elimina gioco</div>
     </div>
     
-    <div class="games-section completed-column">
-      <div class="section-header">
-        <h2 class="section-title">Completati</h2>
-        <span class="game-count" id="completedCount">0</span>
-      </div>
-      <div class="game-grid drop-zone" id="completedGrid"></div>
+    <div id="quickMoveMenu" class="context-menu" style="display: none;">
+      <div class="context-menu-item move-option" data-target="current">🎮 In Corso</div>
+      <div class="context-menu-item move-option" data-target="backlog">📥 Backlog</div>
+      <div class="context-menu-item move-option" data-target="completed">✅ Completati</div>
     </div>
-  </div>
 
-  <div id="contextMenu" class="context-menu">
-    <div class="context-menu-item" id="cmRename">✏️ Cambia nome</div>
-    <div class="context-menu-item" id="cmChangeImage">🖼️ Cambia immagine</div>
-    <div class="context-menu-item" id="cmToggleCurrent">🎮 Segna come in corso</div>
-    <div class="context-menu-divider"></div>
-    <div class="context-menu-item" id="cmTogglePlatinum">🏆 Toggle platino</div>
-    <div class="context-menu-divider"></div>
-    <div class="context-menu-item" id="cmQuickMove">🚀 Sposta rapido a...</div>
-    <div class="context-menu-divider"></div>
-    <div class="context-menu-item" id="cmDelete" style="color: var(--danger);">❌ Elimina gioco</div>
-  </div>
-  
-  <div id="quickMoveMenu" class="context-menu" style="display: none;">
-    <div class="context-menu-item move-option" data-target="current">🎮 In Corso</div>
-    <div class="context-menu-item move-option" data-target="backlog">📥 Backlog</div>
-    <div class="context-menu-item move-option" data-target="completed">✅ Completati</div>
-  </div>
-
-  <div id="notification" class="notification">
-    <span id="notificationText"></span>
+    <div id="notification" class="notification">
+      <span id="notificationText"></span>
+    </div>
   </div>
 
   <script>
-    // ===== Firebase Configuration =====
-    const firebaseConfig = {
-      apiKey: "AIzaSyDm946nISfZs8ugkuYPraNTzFhvgQmnMUk",
-      authDomain: "gametrackerdb.firebaseapp.com",
-      databaseURL: "https://gametrackerdb-default-rtdb.europe-west1.firebasedatabase.app",
-      projectId: "gametrackerdb",
-      storageBucket: "gametrackerdb.appspot.com",
-      messagingSenderId: "132133020733",
-      appId: "1:132133020733:web:acf5dd7301771aaffa3654"
-    };
+    // Firebase Configuration - Replace with your actual config
+const firebaseConfig = {
+
+  apiKey: "AIzaSyDm946nISfZs8ugkuYPraNTzFhvgQmnMUk",
+
+  authDomain: "gametrackerdb.firebaseapp.com",
+
+  databaseURL: "https://gametrackerdb-default-rtdb.europe-west1.firebasedatabase.app",
+
+  projectId: "gametrackerdb",
+
+  storageBucket: "gametrackerdb.firebasestorage.app",
+
+  messagingSenderId: "132133020733",
+
+  appId: "1:132133020733:web:acf5dd7301771aaffa3654"
+
+};
+
 
     // Initialize Firebase
     firebase.initializeApp(firebaseConfig);
-    const database = firebase.database();
     const auth = firebase.auth();
+    const database = firebase.database();
 
-    // Enable offline persistence
-    database.enablePersistence()
-      .catch((err) => {
-        if (err.code == 'failed-precondition') {
-          console.warn("Offline persistence can only be enabled in one tab at a time");
-        } else if (err.code == 'unimplemented') {
-          console.warn("Current browser doesn't support offline persistence");
-        }
-      });
-
-    // ===== Constants =====
+    // Constants
     const PLATINUM_ICON_URL = "https://i.psnprofiles.com/guides/18274/470bd2.png";
     const DEFAULT_IMAGE = 'data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIzMDAiIGhlaWdodD0iMTYwIiB2aWV3Qm94PSIwIDAgMzAwIDE2MCI+PHJlY3Qgd2lkdGg9IjMwMCIgaGVpZ2h0PSIxNjAiIGZpbGw9IiNkZGQiLz48dGV4dCB4PSIxNTAiIHk9IjgwIiBmb250LWZhbWlseT0iQXJpYWwiIGZvbnQtc2l6ZT0iMTYiIHRleHQtYW5jaG9yPSJtaWRkbGUiIGZpbGw9IiM2NjYiPkltbWFnaW5lIG5vbiBkaXNwb25pYmlsZTwvdGV4dD48L3N2Zz4=';
-    const IGDB_PROXY = "https://your-igdb-proxy.workers.dev/";
+    const IGDB_PROXY = "https://rough-wind-0456.amrit-singh99mail-5e3.workers.dev/";
     
     // Storage keys
     const STORAGE_KEY_GAMES = 'custom_games';
@@ -1098,9 +1322,34 @@
     const STORAGE_KEY_PLATINUM_PREFIX = 'platinum_';
     const STORAGE_KEY_CURRENT_PREFIX = 'current_';
     const THEME_KEY = 'user_theme';
-
+    
     // DOM Elements
     const elements = {
+      // Auth elements
+      authModal: document.getElementById("authModal"),
+      loginTab: document.getElementById("loginTab"),
+      registerTab: document.getElementById("registerTab"),
+      loginForm: document.getElementById("loginForm"),
+      registerForm: document.getElementById("registerForm"),
+      loginEmail: document.getElementById("loginEmail"),
+      loginPassword: document.getElementById("loginPassword"),
+      loginBtn: document.getElementById("loginBtn"),
+      loginBtnText: document.getElementById("loginBtnText"),
+      loginError: document.getElementById("loginError"),
+      registerEmail: document.getElementById("registerEmail"),
+      registerPassword: document.getElementById("registerPassword"),
+      registerPasswordConfirm: document.getElementById("registerPasswordConfirm"),
+      registerBtn: document.getElementById("registerBtn"),
+      registerBtnText: document.getElementById("registerBtnText"),
+      registerError: document.getElementById("registerError"),
+      registerSuccess: document.getElementById("registerSuccess"),
+      forgotPasswordLink: document.getElementById("forgotPasswordLink"),
+      logoutBtn: document.getElementById("logoutBtn"),
+      userAvatar: document.getElementById("userAvatar"),
+      userEmail: document.getElementById("userEmail"),
+      appContent: document.getElementById("appContent"),
+      
+      // Game elements
       currentGrid: document.getElementById("currentGrid"),
       backlogGrid: document.getElementById("backlogGrid"),
       completedGrid: document.getElementById("completedGrid"),
@@ -1130,18 +1379,14 @@
       coverResults: document.getElementById('coverResults'),
       selectedCoverUrl: document.getElementById('selectedCoverUrl'),
       notification: document.getElementById('notification'),
-      notificationText: document.getElementById('notificationText'),
-      signInBtn: document.getElementById('signInBtn'),
-      signOutBtn: document.getElementById('signOutBtn'),
-      userInfo: document.getElementById('userInfo'),
-      userAvatar: document.getElementById('userAvatar'),
-      syncBtn: document.getElementById('syncBtn')
+      notificationText: document.getElementById('notificationText')
     };
     
     // State
     let currentContextGame = null;
+    let draggedGame = null;
+    let currentUser = null;
     let isSyncing = false;
-    let lastSyncTime = null;
 
     // Utility Functions
     function sanitizeKey(str) {
@@ -1179,19 +1424,137 @@
       setTimeout(() => {
         notification.classList.remove('show');
       }, duration);
-      return notification;
     }
 
-    function applyTheme(theme) {
-      elements.body.classList.remove('light', 'dark');
-      if (theme === 'light') {
-        elements.body.classList.add('light');
-        elements.themeToggleBtn.textContent = '🌙';
-        elements.themeToggleBtn.title = 'Passa a tema scuro';
+    function debounce(func, wait) {
+      let timeout;
+      return function(...args) {
+        clearTimeout(timeout);
+        timeout = setTimeout(() => func.apply(this, args), wait);
+      };
+    }
+
+    // Firebase Functions
+    function showAuthModal() {
+      elements.authModal.classList.add('active');
+    }
+
+    function hideAuthModal() {
+      elements.authModal.classList.remove('active');
+    }
+
+    function switchToLogin() {
+      elements.loginTab.classList.add('active');
+      elements.registerTab.classList.remove('active');
+      elements.loginForm.classList.add('active');
+      elements.registerForm.classList.remove('active');
+      elements.loginError.textContent = '';
+      elements.registerError.textContent = '';
+    }
+
+    function switchToRegister() {
+      elements.loginTab.classList.remove('active');
+      elements.registerTab.classList.add('active');
+      elements.loginForm.classList.remove('active');
+      elements.registerForm.classList.add('active');
+      elements.loginError.textContent = '';
+      elements.registerError.textContent = '';
+    }
+
+    function updateUserProfile(user) {
+      if (user) {
+        currentUser = user;
+        elements.userEmail.textContent = user.email;
+        elements.userAvatar.textContent = user.email.charAt(0).toUpperCase();
+        elements.appContent.style.display = 'block';
+        hideAuthModal();
+        loadUserData();
       } else {
-        elements.body.classList.add('dark');
-        elements.themeToggleBtn.textContent = '☀️';
-        elements.themeToggleBtn.title = 'Passa a tema chiaro';
+        currentUser = null;
+        elements.appContent.style.display = 'none';
+        showAuthModal();
+      }
+    }
+
+    function loadUserData() {
+      if (!currentUser) return;
+      
+      const userRef = database.ref(`users/${currentUser.uid}`);
+      
+      userRef.on('value', (snapshot) => {
+        const data = snapshot.val();
+        if (!data) return;
+        
+        // Load games
+        if (data.games) {
+          localStorage.setItem(STORAGE_KEY_GAMES, JSON.stringify(data.games));
+        }
+        
+        // Load game states
+        if (data.gameStates) {
+          Object.entries(data.gameStates).forEach(([key, value]) => {
+            localStorage.setItem(key, value);
+          });
+        }
+        
+        // Load theme preference
+        if (data.theme) {
+          localStorage.setItem(THEME_KEY, data.theme);
+          applyTheme(data.theme);
+        }
+        
+        renderGames();
+      });
+    }
+
+    function syncUserData() {
+      if (!currentUser || isSyncing) return;
+      
+      isSyncing = true;
+      
+      try {
+        // Get all games
+        const games = loadCustomGames();
+        
+        // Get all game states
+        const gameStates = {};
+        games.forEach(game => {
+          const key = sanitizeKey(game.title);
+          [STORAGE_KEY_PLAYED_PREFIX, STORAGE_KEY_IMAGE_PREFIX, 
+           STORAGE_KEY_PLATINUM_PREFIX, STORAGE_KEY_CURRENT_PREFIX].forEach(prefix => {
+            const value = localStorage.getItem(prefix + key);
+            if (value !== null) {
+              gameStates[prefix + key] = value;
+            }
+          });
+        });
+        
+        // Get theme
+        const theme = localStorage.getItem(THEME_KEY) || 'dark';
+        
+        // Prepare data to save
+        const userData = {
+          games,
+          gameStates,
+          theme,
+          lastSync: firebase.database.ServerValue.TIMESTAMP
+        };
+        
+        // Save to Firebase
+        database.ref(`users/${currentUser.uid}`).set(userData)
+          .then(() => {
+            console.log('Data synced successfully');
+          })
+          .catch(error => {
+            console.error('Sync failed:', error);
+            showNotification('Errore durante la sincronizzazione', 4000, 'error');
+          })
+          .finally(() => {
+            isSyncing = false;
+          });
+      } catch (error) {
+        console.error('Sync error:', error);
+        isSyncing = false;
       }
     }
 
@@ -1207,13 +1570,10 @@
       }
     }
 
-    async function saveCustomGames(customGames) {
+    function saveCustomGames(customGames) {
       try {
         localStorage.setItem(STORAGE_KEY_GAMES, JSON.stringify(customGames));
-        
-        if (auth.currentUser) {
-          await database.ref(`users/${auth.currentUser.uid}/games`).set(customGames);
-        }
+        syncUserData();
       } catch (e) {
         console.error("Error saving games:", e);
         showNotification("Errore nel salvataggio dei giochi", 4000, 'error');
@@ -1260,6 +1620,9 @@
     // IGDB Functions
     async function searchIGDBGames(query) {
       try {
+        if (IGDB_PROXY.includes('rough-wind-0456')) {
+          console.warn('Using placeholder IGDB proxy URL. Replace with your actual proxy URL.');
+        }
         if (!query || query.length < 3) return [];
         
         elements.coverResults.innerHTML = '<div class="loading"><div class="loading-spinner"></div><div>Ricerca in corso...</div></div>';
@@ -1457,28 +1820,13 @@
       const keyCurrent = STORAGE_KEY_CURRENT_PREFIX + sanitizeKey(game.title);
 
       const checkbox = gameEl.querySelector('input[type="checkbox"]');
-      checkbox.addEventListener('change', async () => {
-        const newPlayed = checkbox.checked;
-        localStorage.setItem(keyPlayed, newPlayed.toString());
-        
-        if (newPlayed) {
+      checkbox.addEventListener('change', () => {
+        localStorage.setItem(keyPlayed, checkbox.checked.toString());
+        if (checkbox.checked) {
           localStorage.removeItem(keyCurrent);
         }
-        
-        // Sync to Firebase
-        if (auth.currentUser) {
-          try {
-            await database.ref(`users/${auth.currentUser.uid}/gameStates/${sanitizeKey(game.title)}`).update({
-              played: newPlayed,
-              current: newPlayed ? false : localStorage.getItem(keyCurrent) === "true",
-              lastUpdated: Date.now()
-            });
-          } catch (error) {
-            console.error("Error syncing game state:", error);
-          }
-        }
-        
-        showNotification(newPlayed ? 
+        syncUserData();
+        showNotification(checkbox.checked ? 
           `"${game.title}" segnato come completato!` : 
           `"${game.title}" spostato al backlog`);
         renderGames();
@@ -1491,18 +1839,7 @@
         const newUrl = prompt(`Inserisci il nuovo URL dell'immagine per "${game.title}":`, currentImage);
         if (newUrl && isValidImageUrl(newUrl)) {
           localStorage.setItem(keyImage, newUrl);
-          
-          // Sync to Firebase
-          if (auth.currentUser) {
-            database.ref(`users/${auth.currentUser.uid}/games`).once('value').then(snapshot => {
-              const games = snapshot.val() || [];
-              const updatedGames = games.map(g => 
-                g.title === game.title ? { ...g, image: newUrl } : g
-              );
-              database.ref(`users/${auth.currentUser.uid}/games`).set(updatedGames);
-            });
-          }
-          
+          syncUserData();
           showNotification(`Immagine per "${game.title}" aggiornata`);
           renderGames();
         } else if (newUrl) {
@@ -1511,33 +1848,21 @@
       });
 
       const titleEl = gameEl.querySelector(".game-title");
-      titleEl.addEventListener("dblclick", async () => {
+      titleEl.addEventListener("dblclick", () => {
         const current = localStorage.getItem(keyPlat) === "true";
-        const newPlat = !current;
-        localStorage.setItem(keyPlat, newPlat.toString());
-        
-        // Sync to Firebase
-        if (auth.currentUser) {
-          try {
-            await database.ref(`users/${auth.currentUser.uid}/gameStates/${sanitizeKey(game.title)}`).update({
-              platinum: newPlat,
-              lastUpdated: Date.now()
-            });
-          } catch (error) {
-            console.error("Error syncing platinum status:", error);
-          }
-        }
-        
-        showNotification(newPlat ? 
-          `Platino aggiunto a "${game.title}"!` : 
-          `Platino rimosso da "${game.title}"`);
+        localStorage.setItem(keyPlat, (!current).toString());
+        syncUserData();
+        showNotification(current ? 
+          `Platino rimosso da "${game.title}"` : 
+          `Platino aggiunto a "${game.title}"!`);
         renderGames();
       });
 
-      gameEl.querySelector('.remove-btn').addEventListener('click', async (e) => {
+      gameEl.querySelector('.remove-btn').addEventListener('click', (e) => {
         e.stopPropagation();
         if(confirm(`Rimuovere "${game.title}" dalla lista?`)) {
-          await deleteGame(game.title);
+          deleteGame(game.title);
+          showNotification(`"${game.title}" rimosso dalla lista`);
         }
       });
 
@@ -1561,65 +1886,6 @@
         e.preventDefault();
         showContextMenu(game, e.clientX, e.clientY);
       });
-    }
-
-    async function deleteGame(title) {
-      const customGames = loadCustomGames().filter(g => g.title !== title);
-      const key = sanitizeKey(title);
-      
-      // Local removal
-      saveCustomGames(customGames);
-      [STORAGE_KEY_PLAYED_PREFIX, STORAGE_KEY_IMAGE_PREFIX, 
-       STORAGE_KEY_PLATINUM_PREFIX, STORAGE_KEY_CURRENT_PREFIX].forEach(prefix => {
-        localStorage.removeItem(prefix + key);
-      });
-
-      // Firebase sync
-      if (auth.currentUser) {
-        try {
-          await database.ref(`users/${auth.currentUser.uid}/games`).set(customGames);
-          await database.ref(`users/${auth.currentUser.uid}/gameStates/${key}`).remove();
-          showNotification(`"${title}" deleted and synced`);
-        } catch (error) {
-          showNotification(`Delete failed: ${error.message}`, 4000, 'error');
-        }
-      }
-      
-      renderGames();
-    }
-
-    async function addNewGame(title, coverUrl) {
-      const customGames = loadCustomGames();
-      if (customGames.some(g => g.title.toLowerCase() === title.toLowerCase())) {
-        showNotification('Game already exists', 3000, 'warning');
-        return false;
-      }
-
-      const newGame = { title, image: coverUrl };
-      customGames.push(newGame);
-      
-      // Local updates
-      saveCustomGames(customGames);
-      localStorage.setItem(STORAGE_KEY_CURRENT_PREFIX + sanitizeKey(title), "true");
-      localStorage.setItem(STORAGE_KEY_IMAGE_PREFIX + sanitizeKey(title), coverUrl);
-
-      // Firebase sync
-      if (auth.currentUser) {
-        try {
-          await database.ref(`users/${auth.currentUser.uid}/games`).set(customGames);
-          await database.ref(`users/${auth.currentUser.uid}/gameStates/${sanitizeKey(title)}`).set({
-            played: false,
-            platinum: false,
-            current: true,
-            lastUpdated: Date.now()
-          });
-          return true;
-        } catch (error) {
-          console.error("Add game error:", error);
-          return false;
-        }
-      }
-      return true;
     }
 
     function showContextMenu(game, x, y) {
@@ -1656,7 +1922,7 @@
       elements.quickMoveMenu.style.top = `${rect.bottom + 5}px`;
     }
 
-    async function updateGameName(oldName, newName) {
+    function updateGameName(oldName, newName) {
       if (!newName || newName.trim() === '') return;
       
       newName = newName.trim();
@@ -1668,7 +1934,6 @@
       const oldKey = sanitizeKey(oldName);
       const newKey = sanitizeKey(newName);
       
-      // Update local storage
       [STORAGE_KEY_PLAYED_PREFIX, STORAGE_KEY_IMAGE_PREFIX, 
        STORAGE_KEY_PLATINUM_PREFIX, STORAGE_KEY_CURRENT_PREFIX].forEach(prefix => {
         const value = localStorage.getItem(prefix + oldKey);
@@ -1678,65 +1943,46 @@
         }
       });
       
-      // Update games list
       customGames[gameIndex].title = newName;
       saveCustomGames(customGames);
-      
-      // Sync to Firebase
-      if (auth.currentUser) {
-        try {
-          // Update games list
-          await database.ref(`users/${auth.currentUser.uid}/games`).set(customGames);
-          
-          // Update game state if it exists
-          const stateSnapshot = await database.ref(`users/${auth.currentUser.uid}/gameStates/${oldKey}`).once('value');
-          if (stateSnapshot.exists()) {
-            await database.ref(`users/${auth.currentUser.uid}/gameStates/${newKey}`).set(stateSnapshot.val());
-            await database.ref(`users/${auth.currentUser.uid}/gameStates/${oldKey}`).remove();
-          }
-        } catch (error) {
-          console.error("Error syncing name change:", error);
-        }
-      }
-      
       showNotification(`Nome cambiato da "${oldName}" a "${newName}"`);
       renderGames();
     }
 
-    async function moveGameToSection(gameTitle, section) {
+    function deleteGame(title) {
+      const customGames = loadCustomGames().filter(g => g.title !== title);
+      saveCustomGames(customGames);
+      
+      const key = sanitizeKey(title);
+      [STORAGE_KEY_PLAYED_PREFIX, STORAGE_KEY_IMAGE_PREFIX, 
+       STORAGE_KEY_PLATINUM_PREFIX, STORAGE_KEY_CURRENT_PREFIX].forEach(prefix => {
+        localStorage.removeItem(prefix + key);
+      });
+      
+      syncUserData();
+      renderGames();
+    }
+
+    function moveGameToSection(gameTitle, section) {
       const key = sanitizeKey(gameTitle);
-      let updates = {};
       
       if (section === 'current') {
-        updates[STORAGE_KEY_CURRENT_PREFIX + key] = "true";
-        updates[STORAGE_KEY_PLAYED_PREFIX + key] = "false";
+        localStorage.setItem(STORAGE_KEY_CURRENT_PREFIX + key, "true");
+        localStorage.setItem(STORAGE_KEY_PLAYED_PREFIX + key, "false");
+        syncUserData();
         showNotification(`"${gameTitle}" spostato ai giochi in corso`);
       } 
       else if (section === 'completed') {
-        updates[STORAGE_KEY_PLAYED_PREFIX + key] = "true";
-        updates[STORAGE_KEY_CURRENT_PREFIX + key] = "false";
+        localStorage.setItem(STORAGE_KEY_PLAYED_PREFIX + key, "true");
+        localStorage.removeItem(STORAGE_KEY_CURRENT_PREFIX + key);
+        syncUserData();
         showNotification(`"${gameTitle}" spostato ai giochi completati`);
       } 
       else {
-        updates[STORAGE_KEY_PLAYED_PREFIX + key] = "false";
-        updates[STORAGE_KEY_CURRENT_PREFIX + key] = "false";
+        localStorage.setItem(STORAGE_KEY_PLAYED_PREFIX + key, "false");
+        localStorage.removeItem(STORAGE_KEY_CURRENT_PREFIX + key);
+        syncUserData();
         showNotification(`"${gameTitle}" spostato al backlog`);
-      }
-      
-      // Update local storage
-      Object.entries(updates).forEach(([k, v]) => localStorage.setItem(k, v));
-      
-      // Sync to Firebase
-      if (auth.currentUser) {
-        try {
-          await database.ref(`users/${auth.currentUser.uid}/gameStates/${key}`).update({
-            played: section === 'completed',
-            current: section === 'current',
-            lastUpdated: Date.now()
-          });
-        } catch (error) {
-          console.error("Error syncing move:", error);
-        }
       }
       
       renderGames();
@@ -1798,146 +2044,135 @@
       });
     }
 
-    function setupRealtimeSync(uid) {
-      // Game list sync
-      database.ref(`users/${uid}/games`).on('value', (snapshot) => {
-        if (snapshot.exists()) {
-          localStorage.setItem(STORAGE_KEY_GAMES, JSON.stringify(snapshot.val()));
-          renderGames();
-        }
-      });
-
-      // Game states sync
-      database.ref(`users/${uid}/gameStates`).on('value', (snapshot) => {
-        if (snapshot.exists()) {
-          snapshot.forEach(childSnapshot => {
-            const key = childSnapshot.key;
-            const value = childSnapshot.val();
-            
-            if (value.played !== undefined) {
-              localStorage.setItem(STORAGE_KEY_PLAYED_PREFIX + key, value.played);
-            }
-            if (value.platinum !== undefined) {
-              localStorage.setItem(STORAGE_KEY_PLATINUM_PREFIX + key, value.platinum);
-            }
-            if (value.current !== undefined) {
-              localStorage.setItem(STORAGE_KEY_CURRENT_PREFIX + key, value.current);
-            }
-          });
-          renderGames();
-        }
-      });
-    }
-
-    function renderSyncStatus() {
-      let syncStatus = document.getElementById('sync-status');
-      if (!syncStatus) {
-        syncStatus = document.createElement('div');
-        syncStatus.id = 'sync-status';
-        syncStatus.style.position = 'fixed';
-        syncStatus.style.bottom = '10px';
-        syncStatus.style.right = '10px';
-        syncStatus.style.padding = '8px 12px';
-        syncStatus.style.borderRadius = '4px';
-        document.body.appendChild(syncStatus);
-      }
-
-      if (!auth.currentUser) {
-        syncStatus.textContent = '🔴 Offline (not signed in)';
-        syncStatus.style.backgroundColor = '#ffebee';
-        return;
-      }
-
-      if (isSyncing) {
-        syncStatus.textContent = '🔄 Syncing...';
-        syncStatus.style.backgroundColor = '#fff8e1';
-        return;
-      }
-
-      if (!navigator.onLine) {
-        syncStatus.textContent = '🔴 Offline - changes will sync when online';
-        syncStatus.style.backgroundColor = '#ffebee';
-        return;
-      }
-
-      if (lastSyncTime) {
-        const minsAgo = Math.floor((new Date() - lastSyncTime) / 60000);
-        syncStatus.textContent = `✅ Synced ${minsAgo > 0 ? `${minsAgo}m ago` : 'just now'}`;
-        syncStatus.style.backgroundColor = '#e8f5e9';
+    function applyTheme(theme) {
+      elements.body.classList.remove('light', 'dark');
+      if (theme === 'light') {
+        elements.body.classList.add('light');
+        elements.themeToggleBtn.textContent = '🌙';
+        elements.themeToggleBtn.title = 'Passa a tema scuro';
       } else {
-        syncStatus.textContent = '🟡 Ready to sync';
-        syncStatus.style.backgroundColor = '#fff8e1';
+        elements.body.classList.add('dark');
+        elements.themeToggleBtn.textContent = '☀️';
+        elements.themeToggleBtn.title = 'Passa a tema chiaro';
       }
+      localStorage.setItem(THEME_KEY, theme);
+      syncUserData();
     }
 
-    async function forceSync() {
-      if (isSyncing) {
-        showNotification("Sync already in progress", 2000, 'warning');
-        return;
-      }
+    // Initialize the application
+    function init() {
+      // Set up Firebase auth state listener
+      auth.onAuthStateChanged(user => {
+        updateUserProfile(user);
+      });
 
-      if (!auth.currentUser) {
-        showNotification("You must be signed in to sync", 3000, 'error');
-        return;
-      }
+      // Set up event listeners
+      setupEventListeners();
 
-      isSyncing = true;
-      const loadingNotification = showNotification("Syncing data...", 0, 'info');
-      renderSyncStatus();
-
-      try {
-        const games = loadCustomGames();
-        await database.ref(`users/${auth.currentUser.uid}/games`).set(games);
-        
-        // Sync all game states
-        const gameStates = {};
-        games.forEach(game => {
-          const key = sanitizeKey(game.title);
-          gameStates[key] = {
-            played: localStorage.getItem(STORAGE_KEY_PLAYED_PREFIX + key) === "true",
-            platinum: localStorage.getItem(STORAGE_KEY_PLATINUM_PREFIX + key) === "true",
-            current: localStorage.getItem(STORAGE_KEY_CURRENT_PREFIX + key) === "true",
-            lastUpdated: Date.now()
-          };
-        });
-        await database.ref(`users/${auth.currentUser.uid}/gameStates`).set(gameStates);
-        
-        // Update sync timestamp
-        lastSyncTime = new Date();
-        localStorage.setItem('lastSync', lastSyncTime.toISOString());
-        
-        showNotification("Data successfully synced!", 3000, 'success');
-      } catch (error) {
-        console.error("Sync error:", error);
-        showNotification(`Sync failed: ${error.message}`, 4000, 'error');
-        
-        // Queue for retry
-        if (navigator.onLine) {
-          setTimeout(() => forceSync(), 5000);
-        }
-      } finally {
-        // Clear loading notification
-        if (loadingNotification) loadingNotification.remove();
-        isSyncing = false;
-        renderSyncStatus();
-      }
+      // Apply theme
+      const savedTheme = localStorage.getItem(THEME_KEY) || 'dark';
+      applyTheme(savedTheme);
     }
 
     function setupEventListeners() {
-      // Theme toggle
+      // Auth event listeners
+      elements.loginTab.addEventListener('click', switchToLogin);
+      elements.registerTab.addEventListener('click', switchToRegister);
+      
+      elements.loginBtn.addEventListener('click', () => {
+        const email = elements.loginEmail.value;
+        const password = elements.loginPassword.value;
+        
+        if (!email || !password) {
+          elements.loginError.textContent = 'Inserisci email e password';
+          return;
+        }
+        
+        elements.loginBtn.disabled = true;
+        elements.loginBtnText.innerHTML = '<span class="auth-loading"></span> Accesso in corso...';
+        
+        auth.signInWithEmailAndPassword(email, password)
+          .then(() => {
+            // Success handled by auth state listener
+          })
+          .catch(error => {
+            elements.loginError.textContent = getAuthErrorMessage(error);
+            elements.loginBtn.disabled = false;
+            elements.loginBtnText.textContent = 'Accedi';
+          });
+      });
+      
+      elements.registerBtn.addEventListener('click', () => {
+        const email = elements.registerEmail.value;
+        const password = elements.registerPassword.value;
+        const passwordConfirm = elements.registerPasswordConfirm.value;
+        
+        if (!email || !password || !passwordConfirm) {
+          elements.registerError.textContent = 'Compila tutti i campi';
+          return;
+        }
+        
+        if (password !== passwordConfirm) {
+          elements.registerError.textContent = 'Le password non coincidono';
+          return;
+        }
+        
+        if (password.length < 6) {
+          elements.registerError.textContent = 'La password deve avere almeno 6 caratteri';
+          return;
+        }
+        
+        elements.registerBtn.disabled = true;
+        elements.registerBtnText.innerHTML = '<span class="auth-loading"></span> Registrazione in corso...';
+        
+        auth.createUserWithEmailAndPassword(email, password)
+          .then(() => {
+            elements.registerError.textContent = '';
+            elements.registerSuccess.textContent = 'Registrazione completata!';
+            elements.registerBtn.disabled = false;
+            elements.registerBtnText.textContent = 'Registrati';
+          })
+          .catch(error => {
+            elements.registerError.textContent = getAuthErrorMessage(error);
+            elements.registerBtn.disabled = false;
+            elements.registerBtnText.textContent = 'Registrati';
+          });
+      });
+      
+      elements.forgotPasswordLink.addEventListener('click', () => {
+        const email = elements.loginEmail.value || prompt('Inserisci la tua email per reimpostare la password:');
+        if (!email) return;
+        
+        auth.sendPasswordResetEmail(email)
+          .then(() => {
+            showNotification('Email di recupero inviata. Controlla la tua casella di posta.', 5000);
+          })
+          .catch(error => {
+            showNotification(getAuthErrorMessage(error), 4000, 'error');
+          });
+      });
+      
+      elements.logoutBtn.addEventListener('click', () => {
+        auth.signOut()
+          .then(() => {
+            showNotification('Disconnessione effettuata');
+          })
+          .catch(error => {
+            showNotification('Errore durante la disconnessione', 4000, 'error');
+          });
+      });
+      
+      // Game event listeners
       elements.themeToggleBtn.addEventListener('click', () => {
         const currentTheme = elements.body.classList.contains('light') ? 'light' : 'dark';
         const newTheme = currentTheme === 'light' ? 'dark' : 'light';
         applyTheme(newTheme);
-        localStorage.setItem(THEME_KEY, newTheme);
         showNotification(`Tema ${newTheme === 'dark' ? 'scuro' : 'chiaro'} attivato`);
       });
 
-      // Search and sort
       elements.sortSelect.addEventListener('change', renderGames);
       elements.gameSearch.addEventListener('input', renderGames);
 
-      // Cover search
       elements.coverSearch.addEventListener('input', debounce(async (e) => {
         const query = e.target.value.trim();
         if (query.length < 3) {
@@ -1952,38 +2187,13 @@
         displayCoverResults(games);
       }, 500));
 
-      // Close dropdowns when clicking outside
       document.addEventListener('click', (e) => {
         if (!e.target.closest('.cover-dropdown')) {
           elements.coverResults.style.display = 'none';
         }
-        
-        if (!elements.contextMenu.contains(e.target) && 
-            !e.target.closest('.context-menu-item') && 
-            !e.target.closest('.game')) {
-          elements.contextMenu.style.display = 'none';
-        }
-        
-        if (!elements.quickMoveMenu.contains(e.target) && 
-            !e.target.classList.contains('move-btn')) {
-          elements.quickMoveMenu.style.display = 'none';
-        }
-        
-        if (!elements.addGameMenu.contains(e.target) && 
-            e.target !== elements.addGameBtn) {
-          elements.addGameMenu.classList.remove('active');
-        }
       });
-      
-      // Context menu
-      document.addEventListener('contextmenu', (e) => {
-        if (!e.target.closest('.game') && elements.contextMenu.style.display === 'block') {
-          elements.contextMenu.style.display = 'none';
-        }
-      });
-      
-      // Reset button
-      elements.resetBtn.addEventListener('click', async () => {
+
+      elements.resetBtn.addEventListener('click', () => {
         if(confirm("Sei sicuro di voler resettare il tracker? Tutti i dati verranno persi.")) {
           getAllGames().forEach(game => {
             [STORAGE_KEY_PLAYED_PREFIX, STORAGE_KEY_IMAGE_PREFIX, 
@@ -1992,21 +2202,12 @@
             });
           });
           localStorage.removeItem(STORAGE_KEY_GAMES);
-          
-          if (auth.currentUser) {
-            try {
-              await database.ref(`users/${auth.currentUser.uid}`).remove();
-            } catch (error) {
-              console.error("Error resetting cloud data:", error);
-            }
-          }
-          
+          syncUserData();
           showNotification('Tracker resettato con successo');
           renderGames();
         }
       });
 
-      // Export button
       elements.exportBtn.addEventListener('click', () => {
         const data = {};
         const customGames = loadCustomGames();
@@ -2038,7 +2239,6 @@
         }
       });
 
-      // Import button
       elements.importBtn.addEventListener('click', () => {
         elements.importFile.click();
       });
@@ -2054,7 +2254,7 @@
         }
 
         const reader = new FileReader();
-        reader.onload = async event => {
+        reader.onload = event => {
           try {
             const data = JSON.parse(event.target.result);
             
@@ -2079,28 +2279,7 @@
               localStorage.setItem(key, value);
             });
             
-            if (auth.currentUser) {
-              try {
-                await database.ref(`users/${auth.currentUser.uid}/games`).set(JSON.parse(data[STORAGE_KEY_GAMES]));
-                
-                // Import game states
-                const gameStates = {};
-                const games = JSON.parse(data[STORAGE_KEY_GAMES]);
-                games.forEach(game => {
-                  const key = sanitizeKey(game.title);
-                  gameStates[key] = {
-                    played: data[STORAGE_KEY_PLAYED_PREFIX + key] === "true",
-                    platinum: data[STORAGE_KEY_PLATINUM_PREFIX + key] === "true",
-                    current: data[STORAGE_KEY_CURRENT_PREFIX + key] === "true",
-                    lastUpdated: Date.now()
-                  };
-                });
-                await database.ref(`users/${auth.currentUser.uid}/gameStates`).set(gameStates);
-              } catch (error) {
-                console.error("Error importing to Firebase:", error);
-              }
-            }
-            
+            syncUserData();
             renderGames();
             
             const importedGames = JSON.parse(data[STORAGE_KEY_GAMES]);
@@ -2120,14 +2299,12 @@
         reader.readAsText(file);
       });
 
-      // Add game menu
       elements.addGameBtn.addEventListener('click', (e) => {
         e.stopPropagation();
         elements.addGameMenu.classList.toggle('active');
       });
       
-      // Submit new game
-      elements.submitGameBtn.addEventListener('click', async () => {
+      elements.submitGameBtn.addEventListener('click', () => {
         const title = elements.newGameName.value.trim();
         const coverUrl = elements.selectedCoverUrl.value || DEFAULT_IMAGE;
 
@@ -2136,19 +2313,54 @@
           return;
         }
 
-        const success = await addNewGame(title, coverUrl);
-        if (success) {
-          elements.newGameName.value = '';
-          elements.coverSearch.value = '';
-          elements.selectedCoverUrl.value = '';
-          elements.coverResults.innerHTML = '';
-          elements.addGameMenu.classList.remove('active');
-          showNotification(`"${title}" aggiunto ai giochi in corso!`);
-          renderGames();
+        const customGames = loadCustomGames();
+        if (customGames.some(g => g.title.toLowerCase() === title.toLowerCase())) {
+          showNotification('Il gioco è già presente nella lista.', 3000, 'warning');
+          return;
         }
+
+        customGames.push({
+          title, 
+          image: coverUrl
+        });
+        saveCustomGames(customGames);
+        localStorage.setItem(STORAGE_KEY_CURRENT_PREFIX + sanitizeKey(title), "true");
+        localStorage.setItem(STORAGE_KEY_IMAGE_PREFIX + sanitizeKey(title), coverUrl);
+
+        elements.newGameName.value = '';
+        elements.coverSearch.value = '';
+        elements.selectedCoverUrl.value = '';
+        elements.coverResults.innerHTML = '';
+        elements.addGameMenu.classList.remove('active');
+
+        showNotification(`"${title}" aggiunto ai giochi in corso!`);
+        renderGames();
       });
 
-      // Context menu actions
+      document.addEventListener('click', (e) => {
+        if (!elements.contextMenu.contains(e.target) && 
+            !e.target.closest('.context-menu-item') && 
+            !e.target.closest('.game')) {
+          elements.contextMenu.style.display = 'none';
+        }
+        
+        if (!elements.quickMoveMenu.contains(e.target) && 
+            !e.target.classList.contains('move-btn')) {
+          elements.quickMoveMenu.style.display = 'none';
+        }
+        
+        if (!elements.addGameMenu.contains(e.target) && 
+            e.target !== elements.addGameBtn) {
+          elements.addGameMenu.classList.remove('active');
+        }
+      });
+      
+      document.addEventListener('contextmenu', (e) => {
+        if (!e.target.closest('.game') && elements.contextMenu.style.display === 'block') {
+          elements.contextMenu.style.display = 'none';
+        }
+      });
+      
       document.getElementById('cmRename').addEventListener('click', () => {
         if (!currentContextGame) return;
         const newName = prompt("Inserisci il nuovo nome:", currentContextGame.title);
@@ -2165,18 +2377,7 @@
         const newUrl = prompt("Inserisci il nuovo URL immagine:", currentImage);
         if (newUrl && isValidImageUrl(newUrl)) {
           localStorage.setItem(key, newUrl);
-          
-          // Sync to Firebase
-          if (auth.currentUser) {
-            database.ref(`users/${auth.currentUser.uid}/games`).once('value').then(snapshot => {
-              const games = snapshot.val() || [];
-              const updatedGames = games.map(g => 
-                g.title === currentContextGame.title ? { ...g, image: newUrl } : g
-              );
-              database.ref(`users/${auth.currentUser.uid}/games`).set(updatedGames);
-            });
-          }
-          
+          syncUserData();
           showNotification(`Immagine per "${currentContextGame.title}" aggiornata`);
           renderGames();
         } else if (newUrl) {
@@ -2185,24 +2386,12 @@
         elements.contextMenu.style.display = 'none';
       });
       
-      document.getElementById('cmTogglePlatinum').addEventListener('click', async () => {
+      document.getElementById('cmTogglePlatinum').addEventListener('click', () => {
         if (!currentContextGame) return;
         const key = STORAGE_KEY_PLATINUM_PREFIX + sanitizeKey(currentContextGame.title);
         const newValue = localStorage.getItem(key) !== "true";
         localStorage.setItem(key, newValue.toString());
-        
-        // Sync to Firebase
-        if (auth.currentUser) {
-          try {
-            await database.ref(`users/${auth.currentUser.uid}/gameStates/${sanitizeKey(currentContextGame.title)}`).update({
-              platinum: newValue,
-              lastUpdated: Date.now()
-            });
-          } catch (error) {
-            console.error("Error syncing platinum status:", error);
-          }
-        }
-        
+        syncUserData();
         showNotification(newValue ? 
           `Platino aggiunto a "${currentContextGame.title}"!` : 
           `Platino rimosso da "${currentContextGame.title}"`);
@@ -2210,7 +2399,7 @@
         elements.contextMenu.style.display = 'none';
       });
       
-      document.getElementById('cmToggleCurrent').addEventListener('click', async () => {
+      document.getElementById('cmToggleCurrent').addEventListener('click', () => {
         if (!currentContextGame) return;
         const key = STORAGE_KEY_CURRENT_PREFIX + sanitizeKey(currentContextGame.title);
         const newValue = localStorage.getItem(key) !== "true";
@@ -2218,20 +2407,7 @@
         if (newValue) {
           localStorage.setItem(STORAGE_KEY_PLAYED_PREFIX + sanitizeKey(currentContextGame.title), "false");
         }
-        
-        // Sync to Firebase
-        if (auth.currentUser) {
-          try {
-            await database.ref(`users/${auth.currentUser.uid}/gameStates/${sanitizeKey(currentContextGame.title)}`).update({
-              current: newValue,
-              played: newValue ? false : localStorage.getItem(STORAGE_KEY_PLAYED_PREFIX + sanitizeKey(currentContextGame.title)) === "true",
-              lastUpdated: Date.now()
-            });
-          } catch (error) {
-            console.error("Error syncing current status:", error);
-          }
-        }
-        
+        syncUserData();
         showNotification(newValue ? 
           `"${currentContextGame.title}" aggiunto ai giochi in corso!` : 
           `"${currentContextGame.title}" rimosso dai giochi in corso`);
@@ -2257,67 +2433,15 @@
         });
       });
       
-      document.getElementById('cmDelete').addEventListener('click', async () => {
+      document.getElementById('cmDelete').addEventListener('click', () => {
         if (!currentContextGame) return;
         if (confirm(`Eliminare "${currentContextGame.title}" dalla lista?`)) {
-          await deleteGame(currentContextGame.title);
+          deleteGame(currentContextGame.title);
+          showNotification(`"${currentContextGame.title}" rimosso dalla lista`);
         }
         elements.contextMenu.style.display = 'none';
       });
 
-      // Sync button
-      elements.syncBtn.addEventListener('click', forceSync);
-
-      // Auth handlers
-      elements.signInBtn.addEventListener('click', () => {
-        const provider = new firebase.auth.GoogleAuthProvider();
-        auth.signInWithPopup(provider)
-          .then(() => showNotification("Signed in successfully!"))
-          .catch((error) => showNotification(`Sign-in error: ${error.message}`, 4000, 'error'));
-      });
-
-      elements.signOutBtn.addEventListener('click', () => {
-        auth.signOut()
-          .then(() => showNotification("Signed out successfully"))
-          .catch((error) => showNotification(`Sign-out error: ${error.message}`, 4000, 'error'));
-      });
-
-      // Auth state listener
-      auth.onAuthStateChanged((user) => {
-        if (user) {
-          elements.signInBtn.style.display = 'none';
-          elements.userInfo.style.display = 'flex';
-          elements.userAvatar.src = user.photoURL || 'data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAyNCAyNCI+PHBhdGggZmlsbD0iY3VycmVudENvbG9yIiBkPSJNMTIgMTJjMi4yMSAwIDQtMS43OSA0LTRzLTEuNzktNC00LTQtNCAxLjc5LTQgNCAxLjc5IDQgNCA0em0wIDJjLTIuNjcgMC04IDEuMzQtOCA0djJoMTZ2LTJjMC0yLjY2LTUuMzMtNC04LTR6Ii8+PC9zdmc+';
-          
-          // Setup realtime listeners
-          setupRealtimeSync(user.uid);
-          
-          // Initial sync
-          forceSync();
-        } else {
-          elements.signInBtn.style.display = 'flex';
-          elements.userInfo.style.display = 'none';
-          renderGames(); // Show local data
-        }
-        renderSyncStatus();
-      });
-
-      // Online/offline detection
-      window.addEventListener('online', () => {
-        if (auth.currentUser) forceSync();
-        renderSyncStatus();
-      });
-      
-      window.addEventListener('offline', () => {
-        renderSyncStatus();
-      });
-
-      // Auto-sync every 5 minutes when online
-      setInterval(() => {
-        if (navigator.onLine && auth.currentUser) forceSync();
-      }, 5 * 60 * 1000);
-
-      // Escape key closes menus
       document.addEventListener('keydown', (e) => {
         if (e.key === 'Escape') {
           elements.contextMenu.style.display = 'none';
@@ -2328,20 +2452,27 @@
       });
     }
     
-    function debounce(func, wait) {
-      let timeout;
-      return function(...args) {
-        clearTimeout(timeout);
-        timeout = setTimeout(() => func.apply(this, args), wait);
-      };
-    }
-
-    function init() {
-      const savedTheme = localStorage.getItem(THEME_KEY) || 'dark';
-      applyTheme(savedTheme);
-      setupEventListeners();
-      renderGames();
-      renderSyncStatus();
+    function getAuthErrorMessage(error) {
+      switch(error.code) {
+        case 'auth/invalid-email':
+          return 'Email non valida';
+        case 'auth/user-disabled':
+          return 'Account disabilitato';
+        case 'auth/user-not-found':
+          return 'Account non trovato';
+        case 'auth/wrong-password':
+          return 'Password errata';
+        case 'auth/email-already-in-use':
+          return 'Email già in uso';
+        case 'auth/operation-not-allowed':
+          return 'Operazione non permessa';
+        case 'auth/weak-password':
+          return 'Password troppo debole (min. 6 caratteri)';
+        case 'auth/too-many-requests':
+          return 'Troppi tentativi. Riprova più tardi.';
+        default:
+          return 'Errore durante l\'autenticazione';
+      }
     }
 
     document.addEventListener('DOMContentLoaded', init);
