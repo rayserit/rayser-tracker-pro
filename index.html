@@ -1476,63 +1476,80 @@ const firebaseConfig = {
       }
     }
 
-    function loadUserData() {
-      if (!currentUser) return;
-      
-      const userRef = database.ref(`users/${currentUser.uid}`);
-      
-      userRef.on('value', (snapshot) => {
-        const data = snapshot.val();
-        if (!data) return;
-        
-        // Load games
-        if (data.games) {
-          localStorage.setItem(STORAGE_KEY_GAMES, JSON.stringify(data.games));
-        }
-        
-        // Load game states
-        if (data.gameStates) {
-          Object.entries(data.gameStates).forEach(([key, value]) => {
-            localStorage.setItem(key, value);
-          });
-        }
-        
-        // Load theme preference
-        if (data.theme) {
-          localStorage.setItem(THEME_KEY, data.theme);
-          applyTheme(data.theme);
-        }
-        
-        renderGames();
+function loadUserData() {
+  if (!currentUser) return;
+  
+  const userRef = database.ref(`users/${currentUser.uid}`);
+  
+  // Only trigger on actual data changes, not just timestamp updates
+  userRef.orderByChild('lastSync').startAt(Date.now()).on('value', (snapshot) => {
+    const data = snapshot.val();
+    if (!data) return;
+    
+    // Store the last sync timestamp we've processed
+    const lastProcessedSync = localStorage.getItem('lastProcessedSync') || 0;
+    if (data.lastSync <= lastProcessedSync) return;
+    
+    localStorage.setItem('lastProcessedSync', data.lastSync);
+    
+    // Rest of your load logic...
+    if (data.games) {
+      localStorage.setItem(STORAGE_KEY_GAMES, JSON.stringify(data.games));
+    }
+    
+    if (data.gameStates) {
+      Object.entries(data.gameStates).forEach(([key, value]) => {
+        localStorage.setItem(key, value);
       });
     }
+    
+    if (data.theme) {
+      localStorage.setItem(THEME_KEY, data.theme);
+      applyTheme(data.theme);
+    }
+    
+    renderGames();
+  });
+}
 
-    function syncUserData() {
-      if (!currentUser || isSyncing) return;
+function syncUserData() {
+  if (!currentUser || isSyncing) return;
+  
+  isSyncing = true;
+  
+  clearTimeout(syncUserData.debounce);
+  syncUserData.debounce = setTimeout(() => {
+    try {
+      const games = loadCustomGames();
+      const gameStates = {};
+      let hasChanges = false;
       
-      isSyncing = true;
-      
-      try {
-        // Get all games
-        const games = loadCustomGames();
-        
-        // Get all game states
-        const gameStates = {};
-        games.forEach(game => {
-          const key = sanitizeKey(game.title);
-          [STORAGE_KEY_PLAYED_PREFIX, STORAGE_KEY_IMAGE_PREFIX, 
-           STORAGE_KEY_PLATINUM_PREFIX, STORAGE_KEY_CURRENT_PREFIX].forEach(prefix => {
-            const value = localStorage.getItem(prefix + key);
-            if (value !== null) {
-              gameStates[prefix + key] = value;
+      // Check if there are any changes from last sync
+      const lastGames = JSON.parse(localStorage.getItem('lastSyncedGames') || '[]');
+      if (JSON.stringify(games) !== JSON.stringify(lastGames)) {
+        hasChanges = true;
+      }
+
+      games.forEach(game => {
+        const key = sanitizeKey(game.title);
+        [STORAGE_KEY_PLAYED_PREFIX, STORAGE_KEY_IMAGE_PREFIX, 
+         STORAGE_KEY_PLATINUM_PREFIX, STORAGE_KEY_CURRENT_PREFIX].forEach(prefix => {
+          const value = localStorage.getItem(prefix + key);
+          if (value !== null) {
+            gameStates[prefix + key] = value;
+            // Check if this value has changed
+            const lastValue = localStorage.getItem(prefix + key + '_lastSync');
+            if (lastValue !== value) {
+              hasChanges = true;
+              localStorage.setItem(prefix + key + '_lastSync', value);
             }
-          });
+          }
         });
-        
-        // Get theme
+      });
+
+      // Only sync if there are actual changes
+      if (hasChanges) {
         const theme = localStorage.getItem(THEME_KEY) || 'dark';
-        
-        // Prepare data to save
         const userData = {
           games,
           gameStates,
@@ -1540,10 +1557,10 @@ const firebaseConfig = {
           lastSync: firebase.database.ServerValue.TIMESTAMP
         };
         
-        // Save to Firebase
         database.ref(`users/${currentUser.uid}`).set(userData)
           .then(() => {
             console.log('Data synced successfully');
+            localStorage.setItem('lastSyncedGames', JSON.stringify(games));
           })
           .catch(error => {
             console.error('Sync failed:', error);
@@ -1552,11 +1569,15 @@ const firebaseConfig = {
           .finally(() => {
             isSyncing = false;
           });
-      } catch (error) {
-        console.error('Sync error:', error);
+      } else {
         isSyncing = false;
       }
+    } catch (error) {
+      console.error('Sync error:', error);
+      isSyncing = false;
     }
+  }, 1000); // Increased debounce time to 1 second
+}
 
     // Data Functions
     function loadCustomGames() {
