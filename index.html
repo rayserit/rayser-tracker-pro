@@ -912,49 +912,10 @@
         margin: 0 auto;
       }
     }
-        #authContainer {
-      margin-left: auto;
-      display: flex;
-      gap: 0.5rem;
-      align-items: center;
-    }
-    #userInfo {
-      display: none;
-      align-items: center;
-      gap: 0.5rem;
-    }
-    #userAvatar {
-      height: 32px;
-      width: 32px;
-      border-radius: 50%;
-      border: 2px solid var(--primary);
-    }
-    .btn-auth {
-      padding: 0.5rem 1rem;
-      font-size: 0.9rem;
-      display: flex;
-      align-items: center;
-      gap: 0.5rem;
-    }
-    .google-icon {
-      height: 16px;
-      width: 16px;
-    }
   </style>
 </head>
 <body>
   <div class="header-container">
-      <div id="authContainer">
-      <button id="signInBtn" class="btn-secondary btn-auth">
-        <img src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg" class="google-icon">
-        Sign In
-      </button>
-      <div id="userInfo">
-        <img id="userAvatar">
-        <button id="signOutBtn" class="btn-danger">Sign Out</button>
-      </div>
-    </div>
-  </div>
     <div class="header-left">
       <h1>GameTracker Pro</h1>
       
@@ -1070,160 +1031,7 @@
     <span id="notificationText"></span>
   </div>
 
-  <script src="https://www.gstatic.com/firebasejs/9.6.0/firebase-app-compat.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/9.6.0/firebase-auth-compat.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/9.6.0/firebase-database-compat.js"></script>
-  
   <script>
-    // ===== Firebase Configuration =====
-    const firebaseConfig = {
-      apiKey: "AIzaSyDm946nISfZs8ugkuYPraNTzFhvgQmnMUk",
-      authDomain: "gametrackerdb.firebaseapp.com",
-      databaseURL: "gametrackerdb-default-rtdb.europe-west1.firebasedatabase.app",
-      projectId: "gametrackerdb",
-      storageBucket: "gametrackerdb.firebasestorage.app",
-      messagingSenderId: "132133020733",
-      appId: "1:132133020733:web:acf5dd7301771aaffa3654"
-    };
-
-    // Initialize Firebase
-    firebase.initializeApp(firebaseConfig);
-    const database = firebase.database();
-    const auth = firebase.auth();
-
-    // ===== Authentication =====
-    auth.onAuthStateChanged((user) => {
-      const signInBtn = document.getElementById('signInBtn');
-      const signOutBtn = document.getElementById('signOutBtn');
-      const userInfo = document.getElementById('userInfo');
-      const userAvatar = document.getElementById('userAvatar');
-      
-      if (user) {
-        // User signed in
-        signInBtn.style.display = 'none';
-        userInfo.style.display = 'flex';
-        userAvatar.src = user.photoURL || 'data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAyNCAyNCI+PHBhdGggZmlsbD0iY3VycmVudENvbG9yIiBkPSJNMTIgMTJjMi4yMSAwIDQtMS43OSA0LTRzLTEuNzktNC00LTQtNCAxLjc5LTQgNCAxLjc5IDQgNCA0em0wIDJjLTIuNjcgMC04IDEuMzQtOCA0djJoMTZ2LTJjMC0yLjY2LTUuMzMtNC04LTR6Ii8+PC9zdmc+';
-        
-        // Load cloud data
-        loadCloudData(user.uid);
-        setupRealtimeListeners(user.uid);
-      } else {
-        // User signed out
-        signInBtn.style.display = 'flex';
-        userInfo.style.display = 'none';
-        renderGames(); // Show local data
-      }
-    });
-
-    // Google Sign-In
-    document.getElementById('signInBtn').addEventListener('click', () => {
-      const provider = new firebase.auth.GoogleAuthProvider();
-      auth.signInWithPopup(provider)
-        .then(() => showNotification("Signed in successfully!"))
-        .catch((error) => showNotification(`Sign-in error: ${error.message}`, 4000, 'error'));
-    });
-
-    // Sign Out
-    document.getElementById('signOutBtn').addEventListener('click', () => {
-      auth.signOut()
-        .then(() => showNotification("Signed out successfully"))
-        .catch((error) => showNotification(`Sign-out error: ${error.message}`, 4000, 'error'));
-    });
-
-    // ===== Data Synchronization =====
-    async function loadCloudData(userId) {
-      try {
-        const [gamesSnapshot, statesSnapshot] = await Promise.all([
-          database.ref(`users/${userId}/games`).once('value'),
-          database.ref(`users/${userId}/gameStates`).once('value')
-        ]);
-
-        if (gamesSnapshot.exists()) {
-          localStorage.setItem(STORAGE_KEY_GAMES, JSON.stringify(gamesSnapshot.val()));
-          if (statesSnapshot.exists()) {
-            Object.entries(statesSnapshot.val()).forEach(([key, value]) => {
-              localStorage.setItem(key, value);
-            });
-          }
-          showNotification("Cloud data loaded");
-        }
-        renderGames();
-      } catch (error) {
-        showNotification("Using local data", 3000, 'warning');
-        renderGames();
-      }
-    }
-
-function setupRealtimeListeners(userId) {
-  database.ref(`users/${userId}/games`).on('value', (snapshot) => {
-    const cloudGames = snapshot.exists() ? snapshot.val() : [];
-    const localGames = loadCustomGames();
-
-    // Merge: Prefer games not present in the cloud (added offline/local)
-    const cloudTitles = new Set((cloudGames || []).map(g => g.title));
-    const mergedGames = [...(cloudGames || [])];
-    localGames.forEach(localGame => {
-      if (!cloudTitles.has(localGame.title)) {
-        mergedGames.push(localGame); // Add missing local games
-      }
-    });
-
-    localStorage.setItem(STORAGE_KEY_GAMES, JSON.stringify(mergedGames));
-    renderGames();
-  });
-
-  database.ref(`users/${userId}/gameStates`).on('value', (snapshot) => {
-    if (snapshot.exists()) {
-      Object.entries(snapshot.val()).forEach(([key, value]) => {
-        localStorage.setItem(key, value);
-      });
-      renderGames();
-    }
-  });
-}
-
-    // Modify your existing saveCustomGames function
-async function saveCustomGames(customGames) {
-  try {
-    // Always save locally first
-    localStorage.setItem(STORAGE_KEY_GAMES, JSON.stringify(customGames));
-    
-    // Then try to sync to cloud if logged in
-    if (auth.currentUser) {
-      try {
-        await database.ref(`users/${auth.currentUser.uid}/games`).set(customGames);
-        showNotification("Dati salvati e sincronizzati nel cloud!", 2000);
-      } catch (error) {
-        console.error("Cloud sync error:", error);
-        showNotification("Salvataggio locale completato, ma sync cloud fallito", 3000, 'warning');
-      }
-    }
-  } catch (e) {
-    console.error("Error saving games:", e);
-    showNotification("Errore nel salvataggio dei giochi", 4000, 'error');
-  }
-}
-    // Initialize with offline support
-    function init() {
-      firebase.database().enablePersistence()
-        .catch((err) => {
-          if (err.code == 'failed-precondition') {
-            console.warn("Offline persistence only works with one tab");
-          } else if (err.code == 'unimplemented') {
-            console.warn("Browser doesn't support offline persistence");
-          }
-        });
-      
-      // Your existing init code
-      renderGames();
-    }
-
-    // Auto-sync every 5 minutes
-    setInterval(() => {
-      if (auth.currentUser) syncToCloud();
-    }, 5 * 60 * 1000);
-
-    document.addEventListener('DOMContentLoaded', init);
     // Constants
     const PLATINUM_ICON_URL = "https://i.psnprofiles.com/guides/18274/470bd2.png";
     const DEFAULT_IMAGE = 'data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIzMDAiIGhlaWdodD0iMTYwIiB2aWV3Qm94PSIwIDAgMzAwIDE2MCI+PHJlY3Qgd2lkdGg9IjMwMCIgaGVpZ2h0PSIxNjAiIGZpbGw9IiNkZGQiLz48dGV4dCB4PSIxNTAiIHk9IjgwIiBmb250LWZhbWlseT0iQXJpYWwiIGZvbnQtc2l6ZT0iMTYiIHRleHQtYW5jaG9yPSJtaWRkbGUiIGZpbGw9IiM2NjYiPkltbWFnaW5lIG5vbiBkaXNwb25pYmlsZTwvdGV4dD48L3N2Zz4=';
@@ -1955,28 +1763,28 @@ async function saveCustomGames(customGames) {
         elements.addGameMenu.classList.toggle('active');
       });
       
-elements.submitGameBtn.addEventListener('click', async () => {
-  const title = elements.newGameName.value.trim();
-  const coverUrl = elements.selectedCoverUrl.value || DEFAULT_IMAGE;
+      elements.submitGameBtn.addEventListener('click', () => {
+        const title = elements.newGameName.value.trim();
+        const coverUrl = elements.selectedCoverUrl.value || DEFAULT_IMAGE;
 
-  if (!title) {
-    showNotification('Inserisci il nome del gioco', 3000, 'warning');
-    return;
-  }
+        if (!title) {
+          showNotification('Inserisci il nome del gioco', 3000, 'warning');
+          return;
+        }
 
-  const customGames = loadCustomGames();
-  if (customGames.some(g => g.title.toLowerCase() === title.toLowerCase())) {
-    showNotification('Il gioco è già presente nella lista.', 3000, 'warning');
-    return;
-  }
+        const customGames = loadCustomGames();
+        if (customGames.some(g => g.title.toLowerCase() === title.toLowerCase())) {
+          showNotification('Il gioco è già presente nella lista.', 3000, 'warning');
+          return;
+        }
 
-  customGames.push({
-    title, 
-    image: coverUrl
-  });
-  await saveCustomGames(customGames); // Await the reliable save here!
-  localStorage.setItem(STORAGE_KEY_CURRENT_PREFIX + sanitizeKey(title), "true");
-  localStorage.setItem(STORAGE_KEY_IMAGE_PREFIX + sanitizeKey(title), coverUrl);
+        customGames.push({
+          title, 
+          image: coverUrl
+        });
+        saveCustomGames(customGames);
+        localStorage.setItem(STORAGE_KEY_CURRENT_PREFIX + sanitizeKey(title), "true");
+        localStorage.setItem(STORAGE_KEY_IMAGE_PREFIX + sanitizeKey(title), coverUrl);
 
         elements.newGameName.value = '';
         elements.coverSearch.value = '';
