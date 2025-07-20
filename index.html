@@ -1154,31 +1154,46 @@
       }
     }
 
-    function setupRealtimeListeners(userId) {
-      database.ref(`users/${userId}/games`).on('value', (snapshot) => {
-        if (snapshot.exists()) {
-          localStorage.setItem(STORAGE_KEY_GAMES, JSON.stringify(snapshot.val()));
-          renderGames();
-        }
-      });
+function setupRealtimeListeners(userId) {
+  database.ref(`users/${userId}/games`).on('value', (snapshot) => {
+    const cloudGames = snapshot.exists() ? snapshot.val() : [];
+    const localGames = loadCustomGames();
 
-      database.ref(`users/${userId}/gameStates`).on('value', (snapshot) => {
-        if (snapshot.exists()) {
-          Object.entries(snapshot.val()).forEach(([key, value]) => {
-            localStorage.setItem(key, value);
-          });
-          renderGames();
-        }
+    // Merge: Prefer games not present in the cloud (added offline/local)
+    const cloudTitles = new Set((cloudGames || []).map(g => g.title));
+    const mergedGames = [...(cloudGames || [])];
+    localGames.forEach(localGame => {
+      if (!cloudTitles.has(localGame.title)) {
+        mergedGames.push(localGame); // Add missing local games
+      }
+    });
+
+    localStorage.setItem(STORAGE_KEY_GAMES, JSON.stringify(mergedGames));
+    renderGames();
+  });
+
+  database.ref(`users/${userId}/gameStates`).on('value', (snapshot) => {
+    if (snapshot.exists()) {
+      Object.entries(snapshot.val()).forEach(([key, value]) => {
+        localStorage.setItem(key, value);
       });
+      renderGames();
     }
+  });
+}
 
     // Modify your existing saveCustomGames function
-    function saveCustomGames(customGames) {
-      localStorage.setItem(STORAGE_KEY_GAMES, JSON.stringify(customGames));
-      if (auth.currentUser) {
-        syncToCloud();
-      }
+async function saveCustomGames(customGames) {
+  localStorage.setItem(STORAGE_KEY_GAMES, JSON.stringify(customGames));
+  if (auth.currentUser) {
+    try {
+      await syncToCloud();
+      showNotification("Dati salvati e sincronizzati nel cloud!", 2000);
+    } catch (error) {
+      showNotification("ATTENZIONE: Salvataggio solo locale, sync cloud fallito!", 4000, 'warning');
     }
+  }
+}
 
 async function syncToCloud() {
   try {
@@ -1952,28 +1967,38 @@ async function syncToCloud() {
         elements.addGameMenu.classList.toggle('active');
       });
       
-      elements.submitGameBtn.addEventListener('click', () => {
-        const title = elements.newGameName.value.trim();
-        const coverUrl = elements.selectedCoverUrl.value || DEFAULT_IMAGE;
+elements.submitGameBtn.addEventListener('click', async () => {
+  const title = elements.newGameName.value.trim();
+  const coverUrl = elements.selectedCoverUrl.value || DEFAULT_IMAGE;
 
-        if (!title) {
-          showNotification('Inserisci il nome del gioco', 3000, 'warning');
-          return;
-        }
+  if (!title) {
+    showNotification('Inserisci il nome del gioco', 3000, 'warning');
+    return;
+  }
 
-        const customGames = loadCustomGames();
-        if (customGames.some(g => g.title.toLowerCase() === title.toLowerCase())) {
-          showNotification('Il gioco è già presente nella lista.', 3000, 'warning');
-          return;
-        }
+  const customGames = loadCustomGames();
+  if (customGames.some(g => g.title.toLowerCase() === title.toLowerCase())) {
+    showNotification('Il gioco è già presente nella lista.', 3000, 'warning');
+    return;
+  }
 
-        customGames.push({
-          title, 
-          image: coverUrl
-        });
-        saveCustomGames(customGames);
-        localStorage.setItem(STORAGE_KEY_CURRENT_PREFIX + sanitizeKey(title), "true");
-        localStorage.setItem(STORAGE_KEY_IMAGE_PREFIX + sanitizeKey(title), coverUrl);
+  customGames.push({
+    title, 
+    image: coverUrl
+  });
+  await saveCustomGames(customGames); // Await the reliable save here!
+  localStorage.setItem(STORAGE_KEY_CURRENT_PREFIX + sanitizeKey(title), "true");
+  localStorage.setItem(STORAGE_KEY_IMAGE_PREFIX + sanitizeKey(title), coverUrl);
+
+  elements.newGameName.value = '';
+  elements.coverSearch.value = '';
+  elements.selectedCoverUrl.value = '';
+  elements.coverResults.innerHTML = '';
+  elements.addGameMenu.classList.remove('active');
+
+  showNotification(`"${title}" aggiunto ai giochi in corso!`);
+  renderGames();
+});
 
         elements.newGameName.value = '';
         elements.coverSearch.value = '';
