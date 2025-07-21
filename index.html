@@ -1337,19 +1337,13 @@
   <script>
     // Firebase Configuration - Replace with your actual config
     const firebaseConfig = {
-  apiKey: "AIzaSyDm946nISfZs8ugkuYPraNTzFhvgQmnMUk",
-
-  authDomain: "gametrackerdb.firebaseapp.com",
-
-  databaseURL: "https://gametrackerdb-default-rtdb.europe-west1.firebasedatabase.app",
-
-  projectId: "gametrackerdb",
-
-  storageBucket: "gametrackerdb.firebasestorage.app",
-
-  messagingSenderId: "132133020733",
-
-  appId: "1:132133020733:web:acf5dd7301771aaffa3654"
+      apiKey: "AIzaSyDm946nISfZs8ugkuYPraNTzFhvgQmnMUk",
+      authDomain: "gametrackerdb.firebaseapp.com",
+      databaseURL: "https://gametrackerdb-default-rtdb.europe-west1.firebasedatabase.app",
+      projectId: "gametrackerdb",
+      storageBucket: "gametrackerdb.firebasestorage.app",
+      messagingSenderId: "132133020733",
+      appId: "1:132133020733:web:acf5dd7301771aaffa3654"
     };
 
     // Initialize Firebase
@@ -1371,7 +1365,6 @@
     const THEME_KEY = 'user_theme';
     
     // Sync settings
-    const SYNC_COOLDOWN = 30000; // 5 seconds between syncs
     const FORCE_SYNC_COOLDOWN = 30000; // 30 seconds between forced syncs
     
     // DOM Elements
@@ -1441,10 +1434,8 @@
     let draggedGame = null;
     let currentUser = null;
     let isSyncing = false;
-    let lastSyncTime = 0;
     let lastForceSyncTime = 0;
     let hasChangesToSync = false;
-    let syncTimeout = null;
 
     // Utility Functions
     function sanitizeKey(str) {
@@ -1561,52 +1552,40 @@
       }
     }
 
-    function loadUserData() {
-      if (!currentUser) return;
-      
-      const userRef = database.ref(`users/${currentUser.uid}`);
-      
-      userRef.on('value', (snapshot) => {
-        const data = snapshot.val();
-        if (!data) return;
-        
-        // Load games
-        if (data.games) {
-          localStorage.setItem(STORAGE_KEY_GAMES, JSON.stringify(data.games));
-        }
-        
-        // Load game states
-        if (data.gameStates) {
-          Object.entries(data.gameStates).forEach(([key, value]) => {
-            localStorage.setItem(key, value);
-          });
-        }
-        
-        // Load theme preference
-        if (data.theme) {
-          localStorage.setItem(THEME_KEY, data.theme);
-          applyTheme(data.theme);
-        }
-        
-        renderGames();
+function loadUserData() {
+  if (!currentUser) return;
+  
+  // Only load data once instead of setting up a continuous listener
+  database.ref(`users/${currentUser.uid}`).once('value').then((snapshot) => {
+    const data = snapshot.val();
+    if (!data) return;
+    
+    // Load games
+    if (data.games) {
+      localStorage.setItem(STORAGE_KEY_GAMES, JSON.stringify(data.games));
+    }
+    
+    // Load game states
+    if (data.gameStates) {
+      Object.entries(data.gameStates).forEach(([key, value]) => {
+        localStorage.setItem(key, value);
       });
     }
+    
+    // Load theme preference
+    if (data.theme) {
+      localStorage.setItem(THEME_KEY, data.theme);
+      applyTheme(data.theme, false); // Added false to prevent sync
+    }
+    
+    renderGames();
+  });
+}
+
 
     function queueSync() {
       hasChangesToSync = true;
-      
-      // If we're not already waiting to sync, set up a new sync
-      if (!syncTimeout) {
-        const timeSinceLastSync = Date.now() - lastSyncTime;
-        const delay = Math.max(0, SYNC_COOLDOWN - timeSinceLastSync);
-        
-        syncTimeout = setTimeout(() => {
-          if (hasChangesToSync) {
-            syncUserData();
-          }
-          syncTimeout = null;
-        }, delay);
-      }
+      syncUserData();
     }
 
     function forceSync() {
@@ -1629,7 +1608,6 @@
       }
       
       isSyncing = true;
-      lastSyncTime = Date.now();
       hasChangesToSync = false;
       
       updateSyncStatus('syncing', 'Sincronizzazione in corso...');
@@ -1658,13 +1636,9 @@
         const userData = {
           games,
           gameStates,
-          theme
+          theme,
+          lastSync: firebase.database.ServerValue.TIMESTAMP
         };
-        
-        // Only update lastSync if there are actual changes
-        if (force || Object.keys(gameStates).length > 0 || games.length > 0) {
-          userData.lastSync = firebase.database.ServerValue.TIMESTAMP;
-        }
         
         // Save to Firebase
         database.ref(`users/${currentUser.uid}`).set(userData)
@@ -1680,11 +1654,6 @@
           })
           .finally(() => {
             isSyncing = false;
-            
-            // If changes happened while we were syncing, queue another sync
-            if (hasChangesToSync) {
-              queueSync();
-            }
           });
       } catch (error) {
         console.error('Sync error:', error);
