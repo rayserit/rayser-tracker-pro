@@ -4,10 +4,15 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>GameTracker Pro</title>
+  
+  <!-- Add Font Awesome for icons -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+  
   <!-- Add Firebase SDKs -->
   <script src="https://www.gstatic.com/firebasejs/9.6.0/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/9.6.0/firebase-auth-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/9.6.0/firebase-database-compat.js"></script>
+  
   <style>
     /* Added: Global box-sizing to prevent padding/border issues */
     *, *:before, *:after {
@@ -41,14 +46,14 @@
       font-family: 'Segoe UI', system-ui, sans-serif;
       margin: 0;
       padding: 1rem;
-      background: #f8f9fa;
+      background: linear-gradient(135deg, #f5f5f5 0%, #e9ecef 100%);
       color: var(--text-primary);
       transition: var(--transition);
       line-height: 1.6;
     }
     
     body.dark {
-      background: #121212;
+      background: linear-gradient(135deg, #1a1a1a 0%, #2d2d2d 100%);
       color: #f5f5f5;
       --backlog-bg: #1a1a1a;
       --completed-bg: #2d2d2d;
@@ -61,6 +66,39 @@
       --text-secondary: #aaa;
     }
 
+    .btn-icon {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      padding: 0.6rem 1.2rem;
+    }
+    
+    .btn-icon i {
+      font-size: 1.2rem;
+    }
+
+    /* Updated CSS for context menu icons as per your suggestion */
+    .context-menu-item i {
+      width: 20px;
+      text-align: center;
+      margin-right: 10px;
+      font-size: 0.9em;
+    }
+
+    /* Icon colors based on actions */
+    #cmToggleCurrent i { color: var(--primary); } /* For add/remove current */
+    #cmTogglePlatinum i { color: #FFD700; } /* Gold for platinum */
+    #cmDelete i { color: var(--danger); }
+    #cmQuickMove i { color: var(--secondary); }
+    #cmRename i { color: #666; opacity: 0.8; }
+
+    /* Hover effect for icons */
+    .context-menu-item:hover i {
+      transform: scale(1.1);
+      transition: transform 0.2s;
+    }
+
+    /* Rest of the existing CSS... */
     /* Auth Modal Styles */
     .auth-modal {
       position: fixed;
@@ -306,7 +344,7 @@
     }
 
     .stat-item {
-      padding: 0.5rem 0.75rem;
+      padding: 0.75rem;
       border-radius: 8px;
       background: rgba(58, 134, 255, 0.05);
       transition: all 0.2s ease;
@@ -323,7 +361,7 @@
     .stat-value {
       font-weight: 800;
       color: var(--primary);
-      font-size: 1.1rem;
+      font-size: 1.5rem;
     }
 
     .stat-label {
@@ -512,11 +550,11 @@
 
     .game {
       background: var(--game-bg);
-      border-radius: var(--card-radius);
+      border-radius: 12px;
       overflow: hidden;
-      transition: var(--transition);
+      transition: all 0.3s ease;
       position: relative;
-      box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+      box-shadow: 0 4px 12px rgba(0,0,0,0.1);
       width: var(--cover-width);
       border: 1px solid rgba(0,0,0,0.05);
       animation: fadeIn 0.3s ease forwards;
@@ -545,8 +583,8 @@
     }
 
     .game:hover {
-      transform: translateY(-3px) scale(1.02);
-      box-shadow: 0 6px 16px rgba(0,0,0,0.12);
+      transform: translateY(-3px);
+      box-shadow: 0 6px 16px rgba(0,0,0,0.15);
     }
 
     .banner {
@@ -636,31 +674,35 @@
       opacity: 1;
     }
 
-    input[type="checkbox"] {
-      -webkit-appearance: none;
-      appearance: none;
-      width: 18px;
-      height: 18px;
-      border: 2px solid var(--primary);
-      border-radius: 4px;
-      cursor: pointer;
-      position: relative;
-      transition: all 0.2s ease;
-    }
-
-    input[type="checkbox"]:checked {
-      background-color: var(--primary);
-    }
-
-    input[type="checkbox"]:checked::after {
-      content: '✓';
-      position: absolute;
-      color: white;
-      font-size: 12px;
-      top: 50%;
-      left: 50%;
-      transform: translate(-50%, -50%);
-    }
+input[type="checkbox"] {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 18px;
+  height: 18px;
+  min-width: 18px;
+  min-height: 18px;
+  vertical-align: middle;
+  font-size: 16px;
+  border: 2px solid var(--primary);
+  border-radius: 4px;
+  cursor: pointer;
+  position: relative;
+  transition: all 0.2s ease;
+  box-sizing: border-box;
+  background: #fff;
+}
+input[type="checkbox"]:checked {
+  background-color: var(--primary);
+}
+input[type="checkbox"]:checked::after {
+  content: '✓';
+  position: absolute;
+  color: white;
+  font-size: 12px;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+}
 
     body.light input[type="checkbox"]:checked + .game-title {
       color: var(--success);
@@ -686,12 +728,13 @@
       display: none;
       overflow: hidden;
       border: 1px solid rgba(0,0,0,0.1);
-      backdrop-filter: blur(5px);
-      background: rgba(var(--menu-bg-rgb), 0.9);
+      background: var(--menu-bg);
+      border: 1px solid var(--divider-color);
+      box-shadow: 0 4px 12px rgba(0,0,0,0.15);
     }
     
     body.dark .context-menu {
-      box-shadow: 0 2px 10px rgba(0,0,0,0.5);
+      box-shadow: 0 4px 12px rgba(0,0,0,0.3);
       border-color: rgba(255,255,255,0.1);
     }
     
@@ -850,7 +893,7 @@
       position: fixed;
       bottom: 20px;
       right: 20px;
-      background: rgba(34, 139, 34, 0.9);
+      background: var(--success);
       color: white;
       padding: 1rem;
       border-radius: 8px;
@@ -859,8 +902,7 @@
       transition: transform 0.3s ease;
       z-index: 3000;
       max-width: 300px;
-      backdrop-filter: blur(5px);
-      border-left: 4px solid white;
+      border-left: 4px solid var(--primary);
     }
     
     .notification.show {
@@ -868,11 +910,11 @@
     }
     
     .notification.error {
-      background: rgba(255, 68, 68, 0.9);
+      background: var(--danger);
     }
     
     .notification.warning {
-      background: rgba(255, 204, 0, 0.9);
+      background: var(--warning);
       color: #333;
     }
     
@@ -1272,10 +1314,19 @@
             </div>
           </div>
           
-          <button id="resetBtn" class="btn-danger">Reset tracker</button>
-          <button id="exportBtn" class="btn-success">Esporta dati</button>
+          <button id="resetBtn" class="btn-danger btn-icon">
+            <i class="fas fa-sync"></i>
+            <span>Reset tracker</span>
+          </button>
+          <button id="exportBtn" class="btn-success btn-icon">
+            <i class="fas fa-download"></i>
+            <span>Esporta dati</span>
+          </button>
           <input type="file" id="importFile" accept=".json" title="Importa dati JSON" style="display: none;" />
-          <button id="importBtn" class="btn-secondary">Importa dati</button>
+          <button id="importBtn" class="btn-secondary btn-icon">
+            <i class="fas fa-upload"></i>
+            <span>Importa dati</span>
+          </button>
         </div>
       </div>
     </div>
@@ -1307,21 +1358,48 @@
     </div>
 
     <div id="contextMenu" class="context-menu">
-      <div class="context-menu-item" id="cmRename">✏️ Cambia nome</div>
-      <div class="context-menu-item" id="cmChangeImage">🖼️ Cambia immagine</div>
-      <div class="context-menu-item" id="cmToggleCurrent">🎮 Segna come in corso</div>
+      <div class="context-menu-item" id="cmRename">
+        <i class="fas fa-edit"></i>
+        <span>Cambia nome</span>
+      </div>
+      <div class="context-menu-item" id="cmChangeImage">
+        <i class="fas fa-image"></i>
+        <span>Cambia immagine</span>
+      </div>
+      <div class="context-menu-item" id="cmToggleCurrent">
+        <i class="fas fa-play-circle"></i> <!-- Updated dynamically in JS -->
+        <span>Aggiungi a 'in corso'</span>
+      </div>
       <div class="context-menu-divider"></div>
-      <div class="context-menu-item" id="cmTogglePlatinum">🏆 Toggle platino</div>
+      <div class="context-menu-item" id="cmTogglePlatinum">
+        <i class="fas fa-trophy"></i>
+        <span>Toggle platino</span>
+      </div>
       <div class="context-menu-divider"></div>
-      <div class="context-menu-item" id="cmQuickMove">🚀 Sposta rapido a...</div>
+      <div class="context-menu-item" id="cmQuickMove">
+        <i class="fas fa-exchange-alt"></i>
+        <span>Sposta rapido a...</span>
+      </div>
       <div class="context-menu-divider"></div>
-      <div class="context-menu-item" id="cmDelete" style="color: var(--danger);">❌ Elimina gioco</div>
+      <div class="context-menu-item" id="cmDelete" style="color: var(--danger);">
+        <i class="fas fa-trash-alt"></i>
+        <span>Elimina gioco</span>
+      </div>
     </div>
     
     <div id="quickMoveMenu" class="context-menu" style="display: none;">
-      <div class="context-menu-item move-option" data-target="current">🎮 In Corso</div>
-      <div class="context-menu-item move-option" data-target="backlog">📥 Backlog</div>
-      <div class="context-menu-item move-option" data-target="completed">✅ Completati</div>
+      <div class="context-menu-item move-option" data-target="current">
+        <i class="fas fa-play-circle"></i>
+        <span>In Corso</span>
+      </div>
+      <div class="context-menu-item move-option" data-target="backlog">
+        <i class="fas fa-list"></i>
+        <span>Backlog</span>
+      </div>
+      <div class="context-menu-item move-option" data-target="completed">
+        <i class="fas fa-check-circle"></i>
+        <span>Completati</span>
+      </div>
     </div>
 
     <div id="notification" class="notification">
@@ -1353,7 +1431,7 @@
 
     // Constants
     const PLATINUM_ICON_URL = "https://i.psnprofiles.com/guides/18274/470bd2.png";
-    const DEFAULT_IMAGE = 'data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIzMDAiIGhlaWdodD0iMTYwIiB2aWV3Qm94PSIwIDAgMzAwIDE2MCI+PHJlY3Qgd2lkdGg9IjMwMCIgaGVpZ2h0PSIxNjAiIGZpbGw9IiNkZGQiLz48dGV4dCB4PSIxNTAiIHk9IjgwIiBmb250LWZhbWlseT0iQXJpYWwiIGZvbnQtc2l6ZT0iMTYiIHRleHQtYW5jaG9yPSJtaWRkbGUiIGZpbGw9IiM2NjYiPkltbWFnaW5lIG5vbiBkaXNwb25pYmlsZTwvdGV4dD48L3N2Zz4=';
+    const DEFAULT_IMAGE = 'data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIzMDAiIGhlaWdodD0iMTYwIiB2aWV3Qm94PSIwIDAgMzAwIDE2MCI+PHJlY3Qgd2lkdGg9IjMwMCIgaGVpZ2h0PSIxNjAiIGZpbGw9IiNkZGQiLz48dGV4dCB4PSIxNTAiIHk9IjgwIiBmb250LWZhbWlseT0iQXJpYWwiIGZvbnQtc2l6ZT0iMTYiIHRleHQtYW5jaG9yPSJtaWRkbGUiIGZpbGw9IiM2NjYiPlImbXVzO2ltbWFnaW5lIG5vbiBkaXNwb25pYmlsZTwvdGV4dD48L3N2Zz4=';
     const IGDB_PROXY = "https://rough-wind-0456.amrit-singh99mail-5e3.workers.dev/";
     
     // Storage keys
@@ -1552,36 +1630,31 @@
       }
     }
 
-function loadUserData() {
-  if (!currentUser) return;
-  
-  // Only load data once instead of setting up a continuous listener
-  database.ref(`users/${currentUser.uid}`).once('value').then((snapshot) => {
-    const data = snapshot.val();
-    if (!data) return;
-    
-    // Load games
-    if (data.games) {
-      localStorage.setItem(STORAGE_KEY_GAMES, JSON.stringify(data.games));
-    }
-    
-    // Load game states
-    if (data.gameStates) {
-      Object.entries(data.gameStates).forEach(([key, value]) => {
-        localStorage.setItem(key, value);
+    function loadUserData() {
+      if (!currentUser) return;
+      
+      database.ref(`users/${currentUser.uid}`).once('value').then((snapshot) => {
+        const data = snapshot.val();
+        if (!data) return;
+        
+        if (data.games) {
+          localStorage.setItem(STORAGE_KEY_GAMES, JSON.stringify(data.games));
+        }
+        
+        if (data.gameStates) {
+          Object.entries(data.gameStates).forEach(([key, value]) => {
+            localStorage.setItem(key, value);
+          });
+        }
+        
+        if (data.theme) {
+          localStorage.setItem(THEME_KEY, data.theme);
+          applyTheme(data.theme, false);
+        }
+        
+        renderGames();
       });
     }
-    
-    // Load theme preference
-    if (data.theme) {
-      localStorage.setItem(THEME_KEY, data.theme);
-      applyTheme(data.theme, false); // Added false to prevent sync
-    }
-    
-    renderGames();
-  });
-}
-
 
     function queueSync() {
       hasChangesToSync = true;
@@ -1613,10 +1686,8 @@ function loadUserData() {
       updateSyncStatus('syncing', 'Sincronizzazione in corso...');
       
       try {
-        // Get all games
         const games = loadCustomGames();
         
-        // Get all game states
         const gameStates = {};
         games.forEach(game => {
           const key = sanitizeKey(game.title);
@@ -1629,10 +1700,8 @@ function loadUserData() {
           });
         });
         
-        // Get theme
         const theme = localStorage.getItem(THEME_KEY) || 'dark';
         
-        // Prepare data to save
         const userData = {
           games,
           gameStates,
@@ -1640,7 +1709,6 @@ function loadUserData() {
           lastSync: firebase.database.ServerValue.TIMESTAMP
         };
         
-        // Save to Firebase
         database.ref(`users/${currentUser.uid}`).set(userData)
           .then(() => {
             updateSyncStatus('success', `Sincronizzato ${new Date().toLocaleTimeString()}`);
@@ -1879,9 +1947,9 @@ function loadUserData() {
               <img src="${savedImage}" alt="${escapeHtml(game.title)}" class="banner" 
                    title="Doppio click per cambiare immagine" 
                    onerror="this.src='${DEFAULT_IMAGE}'" />
-              <button class="copy-btn" aria-label="Copia URL immagine">⎘</button>
-              <button class="move-btn" aria-label="Sposta gioco">⇅</button>
-              <button class="remove-btn" aria-label="Rimuovi gioco">×</button>
+              <button class="copy-btn" aria-label="Copia URL immagine"><i class="fas fa-copy"></i></button>
+              <button class="move-btn" aria-label="Sposta gioco"><i class="fas fa-exchange-alt"></i></button>
+              <button class="remove-btn" aria-label="Rimuovi gioco"><i class="fas fa-times"></i></button>
             </div>
             <div class="info">
               <input type="checkbox" ${played ? 'checked' : ''} 
@@ -2009,13 +2077,18 @@ function loadUserData() {
       elements.contextMenu.style.top = `${adjustedY}px`;
       
       const key = sanitizeKey(game.title);
-      document.getElementById('cmToggleCurrent').textContent = 
-        localStorage.getItem(STORAGE_KEY_CURRENT_PREFIX + key) === "true" ? 
-        "⏸️ Rimuovi da 'in corso'" : "🎮 Aggiungi a 'in corso'";
+      const isCurrent = localStorage.getItem(STORAGE_KEY_CURRENT_PREFIX + key) === "true";
+      const cmToggleCurrent = document.getElementById('cmToggleCurrent');
       
-      document.getElementById('cmTogglePlatinum').textContent = 
+      // Dynamically update icon and text as per your suggestion
+      cmToggleCurrent.innerHTML = isCurrent 
+        ? '<i class="fas fa-pause-circle"></i><span>Rimuovi da \'in corso\'</span>'
+        : '<i class="fas fa-play-circle"></i><span>Aggiungi a \'in corso\'</span>';
+      
+      document.getElementById('cmTogglePlatinum').innerHTML = 
         localStorage.getItem(STORAGE_KEY_PLATINUM_PREFIX + key) === "true" ? 
-        "🏅 Rimuovi platino" : "🏆 Aggiungi platino";
+        '<i class="fas fa-trophy"></i><span>Rimuovi platino</span>' : 
+        '<i class="fas fa-trophy"></i><span>Aggiungi platino</span>';
     }
     
     function showQuickMoveMenu(game, target) {
@@ -2166,21 +2239,17 @@ function loadUserData() {
 
     // Initialize the application
     function init() {
-      // Set up Firebase auth state listener
       auth.onAuthStateChanged(user => {
         updateUserProfile(user);
       });
 
-      // Set up event listeners
       setupEventListeners();
 
-      // Apply theme
       const savedTheme = localStorage.getItem(THEME_KEY) || 'dark';
       applyTheme(savedTheme);
     }
 
     function setupEventListeners() {
-      // Auth event listeners
       elements.loginTab.addEventListener('click', switchToLogin);
       elements.registerTab.addEventListener('click', switchToRegister);
       
@@ -2267,7 +2336,6 @@ function loadUserData() {
           });
       });
       
-      // Game event listeners
       elements.themeToggleBtn.addEventListener('click', () => {
         const currentTheme = elements.body.classList.contains('light') ? 'light' : 'dark';
         const newTheme = currentTheme === 'light' ? 'dark' : 'light';
@@ -2556,7 +2624,6 @@ function loadUserData() {
         }
       });
       
-      // Force sync button
       elements.forceSyncBtn.addEventListener('click', forceSync);
     }
     
