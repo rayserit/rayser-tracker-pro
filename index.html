@@ -98,7 +98,86 @@
       transition: transform 0.2s;
     }
 
-    /* Rest of the existing CSS... */
+    /* Header Layout */
+    .header-container {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      gap: 1rem;
+      margin-bottom: 1.5rem;
+    }
+    
+    .header-left {
+      flex: 1;
+      min-width: 0;
+    }
+  
+    .header-right {
+      display: flex;
+      flex-direction: column;
+      align-items: flex-end;
+    }
+  
+    .controls-row.top-row {
+      margin-top: 60px;
+      margin-bottom: 0.75rem;
+    }
+  
+    .action-buttons {
+      display: flex;
+      gap: 0.75rem;
+      flex-wrap: wrap;
+    }
+  
+    .controls-row.bottom-row {
+      margin-top: 20px;
+      display: flex;
+      gap: 0.75rem;
+      align-items: center;
+      flex-wrap: wrap;
+    }
+
+    /* Game title styling */
+    .game-title {
+      white-space: normal;
+      overflow: hidden;
+      display: -webkit-box;
+      -webkit-line-clamp: 2;
+      -webkit-box-orient: vertical;
+      line-height: 1.3;
+      max-height: 2.6em;
+      font-size: 0.85rem;
+    }
+
+    @media (max-width: 992px) {
+      .header-container {
+        flex-direction: column;
+      }
+      
+      .header-right {
+        align-items: flex-start;
+        width: 100%;
+      }
+      
+      .compact-stats {
+        width: 100%;
+        justify-content: space-between;
+      }
+    }
+    
+    @media (max-width: 768px) {
+      .action-buttons {
+        width: 100%;
+        justify-content: space-between;
+      }
+      
+      .action-buttons button {
+        flex: 1;
+        min-width: 120px;
+      }
+    }
+
+    /* Rest of your existing CSS... */
     /* Auth Modal Styles */
     .auth-modal {
       position: fixed;
@@ -299,38 +378,9 @@
       margin-left: auto;
     }
     
-    h1, h2, h3 {
+    h2, h3 {
       margin-top: 0;
       font-weight: 600;
-    }
-
-    h1 {
-      text-align: center;
-      margin-bottom: 1.5rem;
-      font-size: 2rem;
-      color: var(--primary);
-    }
-
-    .header-container {
-      display: flex;
-      justify-content: space-between;
-      align-items: flex-start;
-      flex-wrap: wrap;
-      gap: 1rem;
-      margin-bottom: 1.5rem;
-    }
-
-    .header-left {
-      display: flex;
-      flex-direction: column;
-      gap: 1rem;
-      flex-grow: 1;
-    }
-
-    .header-right {
-      display: flex;
-      flex-direction: column;
-      align-items: flex-end;
     }
 
     .compact-stats {
@@ -368,14 +418,6 @@
       font-size: 0.7rem;
       opacity: 0.8;
       text-align: center;
-    }
-
-    .controls-row {
-      display: flex;
-      gap: 0.75rem;
-      align-items: center;
-      flex-wrap: wrap;
-      width: 100%;
     }
 
     .filter-controls {
@@ -621,15 +663,6 @@
       display: flex;
       align-items: center;
       gap: 0.5rem;
-    }
-
-    .game-title {
-      font-weight: 600;
-      flex-grow: 1;
-      white-space: nowrap;
-      overflow: hidden;
-      text-overflow: ellipsis;
-      font-size: 0.9rem;
     }
 
     .remove-btn, .copy-btn, .move-btn {
@@ -1079,24 +1112,10 @@ input[type="checkbox"]:checked::after {
       .completed-column {
         flex: 100%;
       }
-      
-      .header-container {
-        flex-direction: column;
-      }
-      
-      .header-right {
-        align-items: flex-start;
-        width: 100%;
-      }
-      
-      .compact-stats {
-        width: 100%;
-        justify-content: space-between;
-      }
     }
 
     @media (max-width: 768px) {
-      .controls-row {
+      .controls-row.bottom-row {
         flex-wrap: wrap;
         gap: 0.5rem;
       }
@@ -1133,14 +1152,10 @@ input[type="checkbox"]:checked::after {
       .info {
         padding: 0.5rem;
       }
-      
-      .game-title {
-        font-size: 0.8rem;
-      }
     }
     
     @media (max-width: 480px) {
-      .controls-row {
+      .controls-row.bottom-row {
         flex-direction: column;
         align-items: stretch;
       }
@@ -1248,9 +1263,38 @@ input[type="checkbox"]:checked::after {
   <div id="appContent" style="display: none;">
     <div class="header-container">
       <div class="header-left">
-        <h1>GameTracker Pro</h1>
+        <div class="controls-row top-row">
+          <div class="action-buttons">
+            <div class="add-game-menu-btn">
+              <button id="addGameBtn" class="btn-primary">Aggiungi gioco</button>
+              <div class="add-game-menu">
+                <input type="text" id="newGameName" placeholder="Nome del gioco" required aria-label="Nome del gioco" />
+                <div class="cover-dropdown">
+                  <input type="text" id="coverSearch" placeholder="🔍 Cerca copertina su IGDB..." aria-label="Cerca copertina" />
+                  <div id="coverResults" class="cover-search-results"></div>
+                </div>
+                <input type="hidden" id="selectedCoverUrl" />
+                <button type="button" id="submitGame" class="btn-primary" style="width: 100%;">Salva</button>
+              </div>
+            </div>
+            
+            <button id="resetBtn" class="btn-danger btn-icon">
+              <i class="fas fa-sync"></i>
+              <span>Reset tracker</span>
+            </button>
+            <button id="exportBtn" class="btn-success btn-icon">
+              <i class="fas fa-download"></i>
+              <span>Esporta dati</span>
+            </button>
+            <input type="file" id="importFile" accept=".json" title="Importa dati JSON" style="display: none;" />
+            <button id="importBtn" class="btn-secondary btn-icon">
+              <i class="fas fa-upload"></i>
+              <span>Importa dati</span>
+            </button>
+          </div>
+        </div>
         
-        <div class="controls-row">
+        <div class="controls-row bottom-row">
           <div class="search-container">
             <input type="text" id="gameSearch" placeholder="Cerca giochi..." aria-label="Cerca giochi" />
           </div>
@@ -1298,35 +1342,6 @@ input[type="checkbox"]:checked::after {
             <div class="stat-value" id="statPlatinum">0</div>
             <div class="stat-label">Platini</div>
           </div>
-        </div>
-        
-        <div class="controls-row">
-          <div class="add-game-menu-btn">
-            <button id="addGameBtn" class="btn-primary">Aggiungi gioco</button>
-            <div class="add-game-menu">
-              <input type="text" id="newGameName" placeholder="Nome del gioco" required aria-label="Nome del gioco" />
-              <div class="cover-dropdown">
-                <input type="text" id="coverSearch" placeholder="🔍 Cerca copertina su IGDB..." aria-label="Cerca copertina" />
-                <div id="coverResults" class="cover-search-results"></div>
-              </div>
-              <input type="hidden" id="selectedCoverUrl" />
-              <button type="button" id="submitGame" class="btn-primary" style="width: 100%;">Salva</button>
-            </div>
-          </div>
-          
-          <button id="resetBtn" class="btn-danger btn-icon">
-            <i class="fas fa-sync"></i>
-            <span>Reset tracker</span>
-          </button>
-          <button id="exportBtn" class="btn-success btn-icon">
-            <i class="fas fa-download"></i>
-            <span>Esporta dati</span>
-          </button>
-          <input type="file" id="importFile" accept=".json" title="Importa dati JSON" style="display: none;" />
-          <button id="importBtn" class="btn-secondary btn-icon">
-            <i class="fas fa-upload"></i>
-            <span>Importa dati</span>
-          </button>
         </div>
       </div>
     </div>
