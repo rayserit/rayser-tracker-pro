@@ -5,204 +5,397 @@
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>GameTracker Pro</title>
   
+  <!-- Add Font Awesome for icons -->
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+  
+  <!-- Add Firebase SDKs -->
   <script src="https://www.gstatic.com/firebasejs/9.6.0/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/9.6.0/firebase-auth-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/9.6.0/firebase-database-compat.js"></script>
   
   <style>
-    /* CSS rimane invariato */
-    *, *:before, *:after { box-sizing: border-box; }
+    /* Added: Global box-sizing to prevent padding/border issues */
+    *, *:before, *:after {
+      box-sizing: border-box;
+    }
+
     :root {
-      --primary: #3A86FF; --secondary: #00B4D8; --danger: #ff4444; --success: #228b22; --warning: #ffcc00; --backlog-bg: #F5F5F5; --completed-bg: #e9ecef; --current-highlight: rgba(58, 134, 255, 0.1); --card-radius: 8px; --transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1); --cover-width: 180px; --cover-height: 240px; --cover-compact-width: 150px; --cover-compact-height: 200px; --game-bg: white; --menu-bg: white; --menu-hover: #f0f0f0; --divider-color: #eee; --text-primary: #333; --text-secondary: #666;
+      --primary: #3A86FF;
+      --secondary: #00B4D8;
+      --danger: #ff4444;
+      --success: #228b22;
+      --warning: #ffcc00;
+      --backlog-bg: #F5F5F5;
+      --completed-bg: #e9ecef;
+      --current-highlight: rgba(58, 134, 255, 0.1);
+      --card-radius: 8px;
+      --transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+      --cover-width: 180px;
+      --cover-height: 240px;
+      --cover-compact-width: 150px;
+      --cover-compact-height: 200px;
+      --game-bg: white;
+      --menu-bg: white;
+      --menu-hover: #f0f0f0;
+      --divider-color: #eee;
+      --text-primary: #333;
+      --text-secondary: #666;
     }
-    body { font-family: 'Segoe UI', system-ui, sans-serif; margin: 0; padding: 1rem; background: linear-gradient(135deg, #f5f5f5 0%, #e9ecef 100%); color: var(--text-primary); transition: var(--transition); line-height: 1.6; }
+    
+    body {
+      font-family: 'Segoe UI', system-ui, sans-serif;
+      margin: 0;
+      padding: 1rem;
+      background: linear-gradient(135deg, #f5f5f5 0%, #e9ecef 100%);
+      color: var(--text-primary);
+      transition: var(--transition);
+      line-height: 1.6;
+    }
+    
     body.dark {
-      background: linear-gradient(135deg, #1a1a1a 0%, #2d2d2d 100%); color: #f5f5f5; --backlog-bg: #1a1a1a; --completed-bg: #2d2d2d; --current-highlight: rgba(58, 134, 255, 0.2); --game-bg: #1e1e1e; --menu-bg: #2d2d2d; --menu-hover: #3a3a3a; --divider-color: #444; --text-primary: #f5f5f5; --text-secondary: #aaa;
+      background: linear-gradient(135deg, #1a1a1a 0%, #2d2d2d 100%);
+      color: #f5f5f5;
+      --backlog-bg: #1a1a1a;
+      --completed-bg: #2d2d2d;
+      --current-highlight: rgba(58, 134, 255, 0.2);
+      --game-bg: #1e1e1e;
+      --menu-bg: #2d2d2d;
+      --menu-hover: #3a3a3a;
+      --divider-color: #444;
+      --text-primary: #f5f5f5;
+      --text-secondary: #aaa;
     }
-    .btn-icon { display: flex; align-items: center; gap: 0.5rem; padding: 0.6rem 1.2rem; }
-    .btn-icon i { font-size: 1.2rem; }
-    .context-menu-item i { width: 20px; text-align: center; margin-right: 10px; font-size: 0.9em; }
+
+    .btn-icon {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      padding: 0.6rem 1.2rem;
+    }
+    
+    .btn-icon i {
+      font-size: 1.2rem;
+    }
+
+    .context-menu-item i {
+      width: 20px;
+      text-align: center;
+      margin-right: 10px;
+      font-size: 0.9em;
+    }
+
     #cmToggleCurrent i { color: var(--primary); }
     #cmTogglePlatinum i { color: #FFD700; }
     #cmDelete i { color: var(--danger); }
     #cmQuickMove i { color: var(--secondary); }
     #cmRename i { color: #666; opacity: 0.8; }
-    .context-menu-item:hover i { transform: scale(1.1); transition: transform 0.2s; }
-    .header-container { display: flex; justify-content: space-between; align-items: flex-start; gap: 1rem; margin-bottom: 1.5rem; }
-    .header-left { flex: 1; min-width: 0; }
-    .header-right { display: flex; flex-direction: column; align-items: flex-end; }
-    .controls-row.top-row { margin-top: 60px; margin-bottom: 0.75rem; }
-    .action-buttons { display: flex; gap: 0.75rem; flex-wrap: wrap; }
-    .controls-row.bottom-row { margin-top: 20px; display: flex; gap: 0.75rem; align-items: center; flex-wrap: wrap; }
-    .game-title { white-space: normal; overflow: hidden; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; line-height: 1.3; max-height: 2.6em; font-size: 0.85rem; }
-    @media (max-width: 992px) { .header-container { flex-direction: column; } .header-right { align-items: flex-start; width: 100%; } .compact-stats { width: 100%; justify-content: space-between; } }
-    @media (max-width: 768px) { .action-buttons { width: 100%; justify-content: space-between; } .action-buttons button { flex: 1; min-width: 120px; } }
-    .auth-modal { position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0, 0, 0, 0.7); display: flex; justify-content: center; align-items: center; z-index: 1000; opacity: 0; visibility: hidden; transition: all 0.3s ease; }
-    .auth-modal.active { opacity: 1; visibility: visible; }
-    .auth-container { background: var(--game-bg); border-radius: 12px; width: 100%; max-width: 400px; padding: 2rem; box-shadow: 0 10px 25px rgba(0, 0, 0, 0.2); transform: translateY(20px); transition: transform 0.3s ease; }
-    .auth-modal.active .auth-container { transform: translateY(0); }
-    .auth-header { text-align: center; margin-bottom: 1.5rem; }
-    .auth-header h2 { color: var(--primary); margin-bottom: 0.5rem; }
-    .auth-tabs { display: flex; margin-bottom: 1.5rem; border-bottom: 1px solid var(--divider-color); }
-    .auth-tab { flex: 1; text-align: center; padding: 0.75rem; cursor: pointer; font-weight: 600; color: var(--text-secondary); transition: all 0.2s ease; border-bottom: 2px solid transparent; }
-    .auth-tab.active { color: var(--primary); border-bottom-color: var(--primary); }
-    .auth-form { display: none; }
-    .auth-form.active { display: block; }
-    .auth-form-group { margin-bottom: 1rem; }
-    .auth-form-group label { display: block; margin-bottom: 0.5rem; font-weight: 500; color: var(--text-primary); }
-    .auth-form-group input { width: 100%; padding: 0.75rem; border-radius: 8px; border: 1px solid var(--divider-color); background: var(--backlog-bg); color: var(--text-primary); font-size: 1rem; transition: all 0.2s ease; }
-    .auth-form-group input:focus { outline: none; border-color: var(--primary); box-shadow: 0 0 0 3px rgba(58, 134, 255, 0.2); }
-    .auth-submit-btn { width: 100%; padding: 0.75rem; border-radius: 8px; background: var(--primary); color: white; font-weight: 600; border: none; cursor: pointer; margin-top: 1rem; transition: all 0.2s ease; }
-    .auth-submit-btn:hover { background: #2a75e6; transform: translateY(-1px); }
-    .auth-footer { text-align: center; margin-top: 1.5rem; color: var(--text-secondary); }
-    .auth-footer a { color: var(--primary); text-decoration: none; font-weight: 500; cursor: pointer; }
-    .auth-error { color: var(--danger); font-size: 0.9rem; margin-top: 0.5rem; text-align: center; }
-    .auth-success { color: var(--success); font-size: 0.9rem; margin-top: 0.5rem; text-align: center; }
-    .auth-loading { display: inline-block; width: 20px; height: 20px; border: 3px solid rgba(255, 255, 255, 0.3); border-radius: 50%; border-top-color: white; animation: spin 1s ease-in-out infinite; margin-right: 8px; vertical-align: middle; }
-    .user-profile { display: flex; align-items: center; gap: 0.75rem; margin-bottom: 1rem; }
-    .user-avatar { width: 40px; height: 40px; border-radius: 50%; background: var(--primary); color: white; display: flex; align-items: center; justify-content: center; font-weight: bold; text-transform: uppercase; }
-    .user-email { font-size: 0.9rem; color: var(--text-secondary); }
-    .logout-btn { background: none; border: none; color: var(--danger); cursor: pointer; font-size: 0.9rem; display: flex; align-items: center; gap: 0.25rem; padding: 0.25rem; margin-left: auto; }
-    h2, h3 { margin-top: 0; font-weight: 600; }
-    .compact-stats { display: flex; gap: 0.5rem; background: rgba(58, 134, 255, 0.08); border-radius: 12px; padding: 0.5rem; border: 1px solid rgba(58, 134, 255, 0.1); margin-bottom: 1rem; }
-    .stat-item { padding: 0.75rem; border-radius: 8px; background: rgba(58, 134, 255, 0.05); transition: all 0.2s ease; display: flex; flex-direction: column; align-items: center; min-width: 60px; }
-    .stat-item:hover { background: rgba(58, 134, 255, 0.1); }
-    .stat-value { font-weight: 800; color: var(--primary); font-size: 1.5rem; }
-    .stat-label { font-size: 0.7rem; opacity: 0.8; text-align: center; }
-    .filter-controls { display: flex; gap: 0.75rem; align-items: center; max-width: 240px; }
-    .search-container { position: relative; flex: 1 1 200px; min-width: 150px; max-width: 250px; }
-    #gameSearch { width: 100%; padding: 0.7rem 1rem 0.7rem 2.5rem; border-radius: 8px; border: none; font-size: 0.95rem; transition: var(--transition); background-position: 1rem center; background-repeat: no-repeat; background-size: 1rem; }
-    body.light #gameSearch { background-color: #f5f5f5; color: #333; border: 1px solid #e0e0e0; background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='%23666' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Ccircle cx='11' cy='11' r='8'%3E%3C/circle%3E%3Cline x1='21' y1='21' x2='16.65' y2='16.65'%3E%3C/line%3E%3C/svg%3E"); }
-    body.light #gameSearch:focus { border-color: var(--primary); box-shadow: 0 0 0 3px rgba(58, 134, 255, 0.2); background-color: white; }
-    body.dark #gameSearch { background-color: #2a2a2a; color: #f5f5f5; border: 1px solid #444; background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='%23aaa' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Ccircle cx='11' cy='11' r='8'%3E%3C/circle%3E%3Cline x1='21' y1='21' x2='16.65' y2='16.65'%3E%3C/line%3E%3C/svg%3E"); }
-    body.dark #gameSearch:focus { border-color: var(--primary); box-shadow: 0 0 0 3px rgba(58, 134, 255, 0.3); background-color: #333; }
-    #sortSelect { appearance: none; -webkit-appearance: none; -moz-appearance: none; padding: 0.7rem 2.5rem 0.7rem 1rem; border-radius: 8px; border: none; font-size: 0.95rem; cursor: pointer; transition: var(--transition); background-position: right 1rem center; background-repeat: no-repeat; background-size: 1rem; flex: 0 1 150px; }
-    body.light #sortSelect { background-color: #f5f5f5; color: #333; border: 1px solid #e0e0e0; background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='%23666' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'%3E%3C/polyline%3E%3C/svg%3E"); }
-    body.light #sortSelect:hover { background-color: #eee; }
-    body.dark #sortSelect { background-color: #2a2a2a; color: #f5f5f5; border: 1px solid #444; background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='%23aaa' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'%3E%3C/polyline%3E%3C/svg%3E"); }
-    body.dark #sortSelect:hover { background-color: #333; }
-    #sortSelect:focus { outline: none; border-color: var(--primary); box-shadow: 0 0 0 3px rgba(58, 134, 255, 0.2); }
-    .theme-toggle { width: 42px; height: 42px; min-width: 42px; display: flex; align-items: center; justify-content: center; font-size: 1.3rem; padding: 0; border-radius: 50%; flex: 0 0 42px; }
-    .theme-toggle:focus { outline: 2px solid var(--primary); outline-offset: 2px; }
-    .games-section { margin-bottom: 2rem; }
-    .section-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem; padding-bottom: 0.75rem; border-bottom: 2px solid var(--primary); position: relative; }
-    .section-header::after { content: ''; position: absolute; bottom: -2px; left: 0; width: 100px; height: 2px; background: var(--secondary); }
-    .section-title { font-size: 1.4rem; color: var(--primary); margin: 0; font-weight: 700; letter-spacing: 0.5px; }
-    .game-count { background: var(--primary); color: white; padding: 0.35rem 0.9rem; border-radius: 20px; font-size: 0.8rem; font-weight: 600; margin-left: 0.5rem; }
-    .current-section { background: var(--current-highlight); border-radius: var(--card-radius); padding: 1.5rem; margin-bottom: 2rem; }
-    .current-grid, .game-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(var(--cover-width), 1fr)); gap: 1.5rem; }
-    .game { background: var(--game-bg); border-radius: 12px; overflow: hidden; transition: all 0.3s ease; position: relative; box-shadow: 0 4px 12px rgba(0,0,0,0.1); width: var(--cover-width); border: 1px solid rgba(0,0,0,0.05); animation: fadeIn 0.3s ease forwards; }
-    @keyframes fadeIn { from { opacity: 0; transform: translateY(5px); } to { opacity: 1; transform: translateY(0); } }
-    body.dark .game { box-shadow: 0 4px 12px rgba(0,0,0,0.25); border-color: rgba(255,255,255,0.05); }
-    .current-section .game { border-top: 3px solid var(--primary); }
-    .backlog-column .game { border-top: 3px dashed #aaa; }
-    .completed-column .game { border-top: 3px solid #00B4D8; }
-    .game:hover { transform: translateY(-3px); box-shadow: 0 6px 16px rgba(0,0,0,0.15); }
-    .banner { width: 100%; height: var(--cover-height); object-fit: cover; object-position: center top; cursor: pointer; transition: transform 0.3s ease; background: linear-gradient(45deg, #1a1a1a, #333); position: relative; image-rendering: -webkit-optimize-contrast; image-rendering: crisp-edges; }
-    .banner::after { content: ''; position: absolute; bottom: 0; left: 0; right: 0; height: 40%; background: linear-gradient(to top, rgba(0,0,0,0.5), transparent); opacity: 0; transition: opacity 0.3s ease; }
-    .game:hover .banner::after { opacity: 1; }
-    .info { padding: 0.75rem; display: flex; align-items: center; gap: 0.5rem; }
-    .remove-btn, .copy-btn, .move-btn { position: absolute; width: 24px; height: 24px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: bold; border: none; cursor: pointer; opacity: 0; transition: var(--transition); top: 10px; font-size: 0.8rem; }
-    .remove-btn { right: 10px; background: var(--danger); color: white; }
-    .copy-btn { left: 10px; background: var(--secondary); color: white; }
-    .move-btn { left: 46px; background: var(--primary); color: white; font-size: 14px; }
-    .game:hover .remove-btn, .game:hover .copy-btn, .game:hover .move-btn { opacity: 1; }
-    input[type="checkbox"] { -webkit-appearance: none; appearance: none; width: 18px; height: 18px; min-width: 18px; min-height: 18px; vertical-align: middle; font-size: 16px; border: 2px solid var(--primary); border-radius: 4px; cursor: pointer; position: relative; transition: all 0.2s ease; box-sizing: border-box; background: #fff; }
-    input[type="checkbox"]:checked { background-color: var(--primary); }
-    input[type="checkbox"]:checked::after { content: '✓'; position: absolute; color: white; font-size: 12px; top: 50%; left: 50%; transform: translate(-50%, -50%); }
-    body.light input[type="checkbox"]:checked + .game-title { color: var(--success); }
-    body.dark input[type="checkbox"]:checked + .game-title { color: #4CAF50; }
-    .platinum-icon { width: 18px; height: 18px; filter: drop-shadow(0 0 2px rgba(0,0,0,0.3)); }
-    .context-menu { position: fixed; background: var(--menu-bg); border-radius: 8px; box-shadow: 0 2px 10px rgba(0,0,0,0.2); z-index: 1000; width: 220px; display: none; overflow: hidden; border: 1px solid rgba(0,0,0,0.1); background: var(--menu-bg); border: 1px solid var(--divider-color); box-shadow: 0 4px 12px rgba(0,0,0,0.15); }
-    body.dark .context-menu { box-shadow: 0 4px 12px rgba(0,0,0,0.3); border-color: rgba(255,255,255,0.1); }
-    .context-menu-item { padding: 0.75rem 1rem; cursor: pointer; transition: all 0.15s ease; display: flex; align-items: center; gap: 0.75rem; font-size: 0.9rem; }
-    .context-menu-item:hover { background: var(--menu-hover); }
-    .context-menu-divider { height: 1px; background: var(--divider-color); margin: 0.25rem 0; }
-    .game.dragging { opacity: 0.5; transform: scale(0.95); }
-    .drop-zone { transition: background-color 0.3s; min-height: 100px; }
-    .drop-zone.active { background-color: rgba(58, 134, 255, 0.1); outline: 2px dashed var(--primary); }
-    button { border: none; padding: 0.6rem 1.2rem; border-radius: 8px; font-weight: 600; cursor: pointer; transition: var(--transition); display: flex; align-items: center; gap: 0.5rem; font-size: 0.95rem; position: relative; overflow: hidden; }
-    button::after { content: ''; position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: rgba(255,255,255,0.1); opacity: 0; transition: opacity 0.2s ease; }
-    button:hover::after { opacity: 1; }
-    body.light button { background: #eee; color: #222; border: 1px solid #ddd; }
-    body.light button:hover { background: #ddd; transform: translateY(-1px); }
-    body.dark button { background: #2a2a2a; color: #f5f5f5; border: 1px solid #444; }
-    body.dark button:hover { background: #3a3a3a; transform: translateY(-1px); }
-    .btn-primary { background: var(--primary) !important; color: white !important; box-shadow: 0 2px 8px rgba(58, 134, 255, 0.3); }
-    .btn-primary:hover { box-shadow: 0 4px 12px rgba(58, 134, 255, 0.4); }
-    .btn-secondary { background: var(--secondary) !important; color: white !important; }
-    .btn-danger { background: var(--danger) !important; color: white !important; }
-    .btn-success { background: var(--success) !important; color: white !important; }
-    .add-game-menu { position: absolute; top: 100%; left: 0; background: var(--game-bg); padding: 1rem; border-radius: 8px; box-shadow: 0 4px 12px rgba(0,0,0,0.15); z-index: 100; width: 280px; margin-top: 0.5rem; display: none; }
-    body.dark .add-game-menu { background: #1e1e1e; }
-    .add-game-menu.active { display: block; }
-    .add-game-menu input { width: calc(100% - 2rem); margin-bottom: 0.75rem; padding: 0.5rem; border-radius: 8px; border: 1px solid #ddd; }
-    body.dark .add-game-menu input { border-color: #444; }
-    .add-game-menu-btn { position: relative; }
-    .notification { position: fixed; bottom: 20px; right: 20px; background: var(--success); color: white; padding: 1rem; border-radius: 8px; box-shadow: 0 4px 12px rgba(0,0,0,0.2); transform: translateX(200%); transition: transform 0.3s ease; z-index: 3000; max-width: 300px; border-left: 4px solid var(--primary); }
-    .notification.show { transform: translateX(0); }
-    .notification.error { background: var(--danger); }
-    .notification.warning { background: var(--warning); color: #333; }
-    .cover-dropdown { position: relative; width: 100%; margin-bottom: 0.75rem; }
-    .cover-search-results { position: absolute; width: 100%; max-height: 300px; overflow-y: auto; background: var(--game-bg); border-radius: 8px; box-shadow: 0 4px 12px rgba(0,0,0,0.15); z-index: 100; display: none; }
-    .cover-option { padding: 0.75rem; cursor: pointer; display: flex; align-items: center; gap: 0.75rem; transition: background-color 0.2s; }
-    .cover-option:hover { background: rgba(58, 134, 255, 0.1); }
-    .cover-option img { width: 60px; height: 80px; object-fit: cover; border-radius: 4px; }
-    .cover-option .game-info { flex-grow: 1; }
-    .cover-option .game-title { font-weight: 600; margin-bottom: 0.25rem; }
-    .cover-option .game-platform { font-size: 0.8rem; opacity: 0.8; }
-    .loading { padding: 1rem; text-align: center; color: var(--secondary); }
-    .loading-spinner { border: 3px solid rgba(0,0,0,0.1); border-radius: 50%; border-top: 3px solid var(--primary); width: 20px; height: 20px; animation: spin 1s linear infinite; margin: 0 auto; }
-    @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
-    ::-webkit-scrollbar { width: 8px; height: 8px; }
-    ::-webkit-scrollbar-track { background: rgba(0,0,0,0.05); }
-    ::-webkit-scrollbar-thumb { background: rgba(0,0,0,0.2); border-radius: 4px; }
-    body.dark ::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.2); }
-    .sync-status { position: fixed; bottom: 10px; left: 10px; padding: 0.5rem 1rem; border-radius: 20px; font-size: 0.8rem; display: flex; align-items: center; gap: 0.5rem; z-index: 1000; background: rgba(0,0,0,0.7); color: white; backdrop-filter: blur(5px); }
-    .sync-status.syncing { background: rgba(58, 134, 255, 0.9); }
-    .sync-status.error { background: rgba(255, 68, 68, 0.9); }
-    .sync-status.success { background: rgba(34, 139, 34, 0.9); }
-    .sync-spinner { border: 2px solid rgba(255,255,255,0.3); border-radius: 50%; border-top: 2px solid white; width: 14px; height: 14px; animation: spin 1s linear infinite; }
-    #forceSyncBtn { margin-left: 0.5rem; padding: 0.25rem 0.5rem; font-size: 0.7rem; background: rgba(255,255,255,0.2); }
-    @media (max-width: 1200px) { .current-grid, .game-grid { grid-template-columns: repeat(auto-fill, minmax(var(--cover-compact-width), 1fr)); } .game { width: var(--cover-compact-width); } .banner { height: var(--cover-compact-height); } }
-    @media (max-width: 992px) { .split-section { flex-direction: column; } .backlog-column, .completed-column { flex: 100%; } }
-    @media (max-width: 768px) { .controls-row.bottom-row { flex-wrap: wrap; gap: 0.5rem; } .search-container { flex: 1 1 100%; max-width: 100%; min-width: 0; } .filter-controls { flex: 1 1 auto; max-width: 100%; justify-content: flex-start; } #sortSelect { flex: 0 1 120px; } .current-grid, .game-grid { grid-template-columns: repeat(auto-fill, minmax(120px, 1fr)); } .game { width: 120px; } .banner { height: 160px; } .info { padding: 0.5rem; } }
-    @media (max-width: 480px) { .controls-row.bottom-row { flex-direction: column; align-items: stretch; } .search-container, #sortSelect { width: 100%; max-width: 100%; flex: 1 1 100%; } .filter-controls { flex-direction: column; align-items: stretch; max-width: 100%; } .theme-toggle { align-self: center; } .notification { bottom: 10px; right: 10px; max-width: calc(100% - 20px); } .compact-stats { flex-wrap: wrap; } .stat-item { min-width: 45px; } .current-grid, .game-grid { grid-template-columns: 1fr; } .game { width: 100%; max-width: 180px; margin: 0 auto; } }
+
+    .context-menu-item:hover i {
+      transform: scale(1.1);
+      transition: transform 0.2s;
+    }
+
+    .header-container {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      gap: 1rem;
+      margin-bottom: 1.5rem;
+    }
+    
+    .header-left {
+      flex: 1;
+      min-width: 0;
+    }
+  
+    .header-right {
+      display: flex;
+      flex-direction: column;
+      align-items: flex-end;
+    }
+  
+    .controls-row.top-row {
+      margin-top: 60px;
+      margin-bottom: 0.75rem;
+    }
+  
+    .action-buttons {
+      display: flex;
+      gap: 0.75rem;
+      flex-wrap: wrap;
+    }
+  
+    .controls-row.bottom-row {
+      margin-top: 20px;
+      display: flex;
+      gap: 0.75rem;
+      align-items: center;
+      flex-wrap: wrap;
+    }
+
+    .game-title {
+      white-space: normal;
+      overflow: hidden;
+      display: -webkit-box;
+      -webkit-line-clamp: 2;
+      -webkit-box-orient: vertical;
+      line-height: 1.3;
+      max-height: 2.6em;
+      font-size: 0.85rem;
+    }
+
+    @media (max-width: 992px) {
+      .header-container {
+        flex-direction: column;
+      }
+      .header-right {
+        align-items: flex-start;
+        width: 100%;
+      }
+      .compact-stats {
+        width: 100%;
+        justify-content: space-between;
+      }
+    }
+    
+    @media (max-width: 768px) {
+      .action-buttons {
+        width: 100%;
+        justify-content: space-between;
+      }
+      .action-buttons button {
+        flex: 1;
+        min-width: 120px;
+      }
+    }
+
+    .auth-modal{position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,.7);display:flex;justify-content:center;align-items:center;z-index:1000;opacity:0;visibility:hidden;transition:all .3s ease}.auth-modal.active{opacity:1;visibility:visible}.auth-container{background:var(--game-bg);border-radius:12px;width:100%;max-width:400px;padding:2rem;box-shadow:0 10px 25px rgba(0,0,0,.2);transform:translateY(20px);transition:transform .3s ease}.auth-modal.active .auth-container{transform:translateY(0)}.auth-header{text-align:center;margin-bottom:1.5rem}.auth-header h2{color:var(--primary);margin-bottom:.5rem}.auth-tabs{display:flex;margin-bottom:1.5rem;border-bottom:1px solid var(--divider-color)}.auth-tab{flex:1;text-align:center;padding:.75rem;cursor:pointer;font-weight:600;color:var(--text-secondary);transition:all .2s ease;border-bottom:2px solid transparent}.auth-tab.active{color:var(--primary);border-bottom-color:var(--primary)}.auth-form{display:none}.auth-form.active{display:block}.auth-form-group{margin-bottom:1rem}.auth-form-group label{display:block;margin-bottom:.5rem;font-weight:500;color:var(--text-primary)}.auth-form-group input{width:100%;padding:.75rem;border-radius:8px;border:1px solid var(--divider-color);background:var(--backlog-bg);color:var(--text-primary);font-size:1rem;transition:all .2s ease}.auth-form-group input:focus{outline:none;border-color:var(--primary);box-shadow:0 0 0 3px rgba(58,134,255,.2)}.auth-submit-btn{width:100%;padding:.75rem;border-radius:8px;background:var(--primary);color:#fff;font-weight:600;border:none;cursor:pointer;margin-top:1rem;transition:all .2s ease}.auth-submit-btn:hover{background:#2a75e6;transform:translateY(-1px)}.auth-footer{text-align:center;margin-top:1.5rem;color:var(--text-secondary)}.auth-footer a{color:var(--primary);text-decoration:none;font-weight:500;cursor:pointer}.auth-error{color:var(--danger);font-size:.9rem;margin-top:.5rem;text-align:center}.auth-success{color:var(--success);font-size:.9rem;margin-top:.5rem;text-align:center}.auth-loading{display:inline-block;width:20px;height:20px;border:3px solid hsla(0,0%,100%,.3);border-radius:50%;border-top-color:#fff;animation:spin 1s ease-in-out infinite;margin-right:8px;vertical-align:middle}.user-profile{display:flex;align-items:center;gap:.75rem;margin-bottom:1rem}.user-avatar{width:40px;height:40px;border-radius:50%;background:var(--primary);color:#fff;display:flex;align-items:center;justify-content:center;font-weight:700;text-transform:uppercase}.user-email{font-size:.9rem;color:var(--text-secondary)}.logout-btn{background:none;border:none;color:var(--danger);cursor:pointer;font-size:.9rem;display:flex;align-items:center;gap:.25rem;padding:.25rem;margin-left:auto}h2,h3{margin-top:0;font-weight:600}.compact-stats{display:flex;gap:.5rem;background:rgba(58,134,255,.08);border-radius:12px;padding:.5rem;border:1px solid rgba(58,134,255,.1);margin-bottom:1rem}.stat-item{padding:.75rem;border-radius:8px;background:rgba(58,134,255,.05);transition:all .2s ease;display:flex;flex-direction:column;align-items:center;min-width:60px}.stat-item:hover{background:rgba(58,134,255,.1)}.stat-value{font-weight:800;color:var(--primary);font-size:1.5rem}.stat-label{font-size:.7rem;opacity:.8;text-align:center}.filter-controls{display:flex;gap:.75rem;align-items:center;max-width:240px}.search-container{position:relative;flex:1 1 200px;min-width:150px;max-width:250px}#gameSearch{width:100%;padding:.7rem 1rem .7rem 2.5rem;border-radius:8px;border:none;font-size:.95rem;transition:var(--transition);background-position:1rem center;background-repeat:no-repeat;background-size:1rem}body.light #gameSearch{background-color:#f5f5f5;color:#333;border:1px solid #e0e0e0;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='%23666' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Ccircle cx='11' cy='11' r='8'%3E%3C/circle%3E%3Cline x1='21' y1='21' x2='16.65' y2='16.65'%3E%3C/line%3E%3C/svg%3E")}body.light #gameSearch:focus{border-color:var(--primary);box-shadow:0 0 0 3px rgba(58,134,255,.2);background-color:#fff}body.dark #gameSearch{background-color:#2a2a2a;color:#f5f5f5;border:1px solid #444;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='%23aaa' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Ccircle cx='11' cy='11' r='8'%3E%3C/circle%3E%3Cline x1='21' y1='21' x2='16.65' y2='16.65'%3E%3C/line%3E%3C/svg%3E")}body.dark #gameSearch:focus{border-color:var(--primary);box-shadow:0 0 0 3px rgba(58,134,255,.3);background-color:#333}#sortSelect{-webkit-appearance:none;-moz-appearance:none;appearance:none;padding:.7rem 2.5rem .7rem 1rem;border-radius:8px;border:none;font-size:.95rem;cursor:pointer;transition:var(--transition);background-position:right 1rem center;background-repeat:no-repeat;background-size:1rem;flex:0 1 150px}body.light #sortSelect{background-color:#f5f5f5;color:#333;border:1px solid #e0e0e0;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='%23666' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'%3E%3C/polyline%3E%3C/svg%3E")}body.light #sortSelect:hover{background-color:#eee}body.dark #sortSelect{background-color:#2a2a2a;color:#f5f5f5;border:1px solid #444;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='%23aaa' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'%3E%3C/polyline%3E%3C/svg%3E")}body.dark #sortSelect:hover{background-color:#333}#sortSelect:focus{outline:none;border-color:var(--primary);box-shadow:0 0 0 3px rgba(58,134,255,.2)}.theme-toggle{width:42px;height:42px;min-width:42px;display:flex;align-items:center;justify-content:center;font-size:1.3rem;padding:0;border-radius:50%;flex:0 0 42px}.theme-toggle:focus{outline:2px solid var(--primary);outline-offset:2px}.games-section{margin-bottom:2rem}.section-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:1.5rem;padding-bottom:.75rem;border-bottom:2px solid var(--primary);position:relative}.section-header::after{content:'';position:absolute;bottom:-2px;left:0;width:100px;height:2px;background:var(--secondary)}.section-title{font-size:1.4rem;color:var(--primary);margin:0;font-weight:700;letter-spacing:.5px}.game-count{background:var(--primary);color:#fff;padding:.35rem .9rem;border-radius:20px;font-size:.8rem;font-weight:600;margin-left:.5rem}.current-section{background:var(--current-highlight);border-radius:var(--card-radius);padding:1.5rem;margin-bottom:2rem}.current-grid,.game-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(var(--cover-width),1fr));gap:1.5rem}.game{background:var(--game-bg);border-radius:12px;overflow:hidden;transition:all .3s ease;position:relative;box-shadow:0 4px 12px rgba(0,0,0,.1);width:var(--cover-width);border:1px solid rgba(0,0,0,.05);animation:fadeIn .3s ease forwards}@keyframes fadeIn{0%{opacity:0;transform:translateY(5px)}to{opacity:1;transform:translateY(0)}}body.dark .game{box-shadow:0 4px 12px rgba(0,0,0,.25);border-color:hsla(0,0%,100%,.05)}.current-section .game{border-top:3px solid var(--primary)}.backlog-column .game{border-top:3px dashed #aaa}.completed-column .game{border-top:3px solid #00B4D8}.game:hover{transform:translateY(-3px);box-shadow:0 6px 16px rgba(0,0,0,.15)}.banner{width:100%;height:var(--cover-height);-o-object-fit:cover;object-fit:cover;-o-object-position:center top;object-position:center top;cursor:pointer;transition:transform .3s ease;background:linear-gradient(45deg,#1a1a1a,#333);position:relative;image-rendering:-webkit-optimize-contrast;image-rendering:crisp-edges}.banner::after{content:'';position:absolute;bottom:0;left:0;right:0;height:40%;background:linear-gradient(to top,rgba(0,0,0,.5),transparent);opacity:0;transition:opacity .3s ease}.game:hover .banner::after{opacity:1}.info{padding:.75rem;display:flex;align-items:center;gap:.5rem}.copy-btn,.move-btn,.remove-btn{position:absolute;width:24px;height:24px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-weight:700;border:none;cursor:pointer;opacity:0;transition:var(--transition);top:10px;font-size:.8rem}.remove-btn{right:10px;background:var(--danger);color:#fff}.copy-btn{left:10px;background:var(--secondary);color:#fff}.move-btn{left:46px;background:var(--primary);color:#fff;font-size:14px}.game:hover .copy-btn,.game:hover .move-btn,.game:hover .remove-btn{opacity:1}input[type=checkbox]{-webkit-appearance:none;appearance:none;width:18px;height:18px;min-width:18px;min-height:18px;vertical-align:middle;font-size:16px;border:2px solid var(--primary);border-radius:4px;cursor:pointer;position:relative;transition:all .2s ease;box-sizing:border-box;background:#fff}input[type=checkbox]:checked{background-color:var(--primary)}input[type=checkbox]:checked::after{content:'✓';position:absolute;color:#fff;font-size:12px;top:50%;left:50%;transform:translate(-50%,-50%)}body.light input[type=checkbox]:checked+.game-title{color:var(--success)}body.dark input[type=checkbox]:checked+.game-title{color:#4CAF50}.platinum-icon{width:18px;height:18px;filter:drop-shadow(0 0 2px rgba(0,0,0,.3))}.context-menu{position:fixed;background:var(--menu-bg);border-radius:8px;box-shadow:0 2px 10px rgba(0,0,0,.2);z-index:1000;width:220px;display:none;overflow:hidden;border:1px solid rgba(0,0,0,.1);border:1px solid var(--divider-color);box-shadow:0 4px 12px rgba(0,0,0,.15)}body.dark .context-menu{box-shadow:0 4px 12px rgba(0,0,0,.3);border-color:hsla(0,0%,100%,.1)}.context-menu-item{padding:.75rem 1rem;cursor:pointer;transition:all .15s ease;display:flex;align-items:center;gap:.75rem;font-size:.9rem}.context-menu-item:hover{background:var(--menu-hover)}.context-menu-divider{height:1px;background:var(--divider-color);margin:.25rem 0}.game.dragging{opacity:.5;transform:scale(.95)}.drop-zone{transition:background-color .3s;min-height:100px}.drop-zone.active{background-color:rgba(58,134,255,.1);outline:2px dashed var(--primary)}button{border:none;padding:.6rem 1.2rem;border-radius:8px;font-weight:600;cursor:pointer;transition:var(--transition);display:flex;align-items:center;gap:.5rem;font-size:.95rem;position:relative;overflow:hidden}button::after{content:'';position:absolute;top:0;left:0;width:100%;height:100%;background:hsla(0,0%,100%,.1);opacity:0;transition:opacity .2s ease}button:hover::after{opacity:1}body.light button{background:#eee;color:#222;border:1px solid #ddd}body.light button:hover{background:#ddd;transform:translateY(-1px)}body.dark button{background:#2a2a2a;color:#f5f5f5;border:1px solid #444}body.dark button:hover{background:#3a3a3a;transform:translateY(-1px)}.btn-primary{background:var(--primary)!important;color:#fff!important;box-shadow:0 2px 8px rgba(58,134,255,.3)}.btn-primary:hover{box-shadow:0 4px 12px rgba(58,134,255,.4)}.btn-secondary{background:var(--secondary)!important;color:#fff!important}.btn-danger{background:var(--danger)!important;color:#fff!important}.btn-success{background:var(--success)!important;color:#fff!important}.add-game-menu{position:absolute;top:100%;left:0;background:var(--game-bg);padding:1rem;border-radius:8px;box-shadow:0 4px 12px rgba(0,0,0,.15);z-index:100;width:280px;margin-top:.5rem;display:none}body.dark .add-game-menu{background:#1e1e1e}.add-game-menu.active{display:block}.add-game-menu input{width:calc(100% - 2rem);margin-bottom:.75rem;padding:.5rem;border-radius:8px;border:1px solid #ddd}body.dark .add-game-menu input{border-color:#444}.add-game-menu-btn{position:relative}.notification{position:fixed;bottom:20px;right:20px;background:var(--success);color:#fff;padding:1rem;border-radius:8px;box-shadow:0 4px 12px rgba(0,0,0,.2);transform:translateX(200%);transition:transform .3s ease;z-index:3000;max-width:300px;border-left:4px solid var(--primary)}.notification.show{transform:translateX(0)}.notification.error{background:var(--danger)}.notification.warning{background:var(--warning);color:#333}.cover-dropdown{position:relative;width:100%;margin-bottom:.75rem}.cover-search-results{position:absolute;width:100%;max-height:300px;overflow-y:auto;background:var(--game-bg);border-radius:8px;box-shadow:0 4px 12px rgba(0,0,0,.15);z-index:100;display:none}.cover-option{padding:.75rem;cursor:pointer;display:flex;align-items:center;gap:.75rem;transition:background-color .2s}.cover-option:hover{background:rgba(58,134,255,.1)}.cover-option img{width:60px;height:80px;-o-object-fit:cover;object-fit:cover;border-radius:4px}.cover-option .game-info{flex-grow:1}.cover-option .game-title{font-weight:600;margin-bottom:.25rem}.cover-option .game-platform{font-size:.8rem;opacity:.8}.loading{padding:1rem;text-align:center;color:var(--secondary)}.loading-spinner{border:3px solid rgba(0,0,0,.1);border-radius:50%;border-top:3px solid var(--primary);width:20px;height:20px;animation:spin 1s linear infinite;margin:0 auto}@keyframes spin{0%{transform:rotate(0)}to{transform:rotate(360deg)}}::-webkit-scrollbar{width:8px;height:8px}::-webkit-scrollbar-track{background:rgba(0,0,0,.05)}::-webkit-scrollbar-thumb{background:rgba(0,0,0,.2);border-radius:4px}body.dark ::-webkit-scrollbar-thumb{background:hsla(0,0%,100%,.2)}.sync-status{position:fixed;bottom:10px;left:10px;padding:.5rem 1rem;border-radius:20px;font-size:.8rem;display:flex;align-items:center;gap:.5rem;z-index:1000;background:rgba(0,0,0,.7);color:#fff;backdrop-filter:blur(5px)}.sync-status.syncing{background:rgba(58,134,255,.9)}.sync-status.error{background:rgba(255,68,68,.9)}.sync-status.success{background:rgba(34,139,34,.9)}.sync-spinner{border:2px solid hsla(0,0%,100%,.3);border-radius:50%;border-top:2px solid #fff;width:14px;height:14px;animation:spin 1s linear infinite}#forceSyncBtn{margin-left:.5rem;padding:.25rem .5rem;font-size:.7rem;background:hsla(0,0%,100%,.2)}@media (max-width:1200px){.current-grid,.game-grid{grid-template-columns:repeat(auto-fill,minmax(var(--cover-compact-width),1fr))}.game{width:var(--cover-compact-width)}.banner{height:var(--cover-compact-height)}}@media (max-width:992px){.split-section{flex-direction:column}.backlog-column,.completed-column{flex:100%}}@media (max-width:768px){.controls-row.bottom-row{flex-wrap:wrap;gap:.5rem}.search-container{flex:1 1 100%;max-width:100%;min-width:0}.filter-controls{flex:1 1 auto;max-width:100%;justify-content:flex-start}#sortSelect{flex:0 1 120px}.current-grid,.game-grid{grid-template-columns:repeat(auto-fill,minmax(120px,1fr))}.game{width:120px}.banner{height:160px}.info{padding:.5rem}}@media (max-width:480px){.controls-row.bottom-row{flex-direction:column;align-items:stretch}.search-container,#sortSelect{width:100%;max-width:100%;flex:1 1 100%}.filter-controls{flex-direction:column;align-items:stretch;max-width:100%}.theme-toggle{align-self:center}.notification{bottom:10px;right:10px;max-width:calc(100% - 20px)}.compact-stats{flex-wrap:wrap}.stat-item{min-width:45px}.current-grid,.game-grid{grid-template-columns:1fr}.game{width:100%;max-width:180px;margin:0 auto}}
   </style>
 </head>
 <body>
+  <!-- Auth Modal -->
   <div class="auth-modal" id="authModal">
     <div class="auth-container">
-      <div class="auth-header"><h2>GameTracker Pro</h2><p>Accedi o registrati per sincronizzare i tuoi giochi</p></div>
-      <div class="auth-tabs"><div class="auth-tab active" id="loginTab">Accedi</div><div class="auth-tab" id="registerTab">Registrati</div></div>
-      <div class="auth-form active" id="loginForm"><div class="auth-form-group"><label for="loginEmail">Email</label><input type="email" id="loginEmail" placeholder="tua@email.com"></div><div class="auth-form-group"><label for="loginPassword">Password</label><input type="password" id="loginPassword" placeholder="••••••••"></div><button class="auth-submit-btn" id="loginBtn"><span id="loginBtnText">Accedi</span></button><div class="auth-error" id="loginError"></div></div>
-      <div class="auth-form" id="registerForm"><div class="auth-form-group"><label for="registerEmail">Email</label><input type="email" id="registerEmail" placeholder="tua@email.com"></div><div class="auth-form-group"><label for="registerPassword">Password</label><input type="password" id="registerPassword" placeholder="••••••••"></div><div class="auth-form-group"><label for="registerPasswordConfirm">Conferma Password</label><input type="password" id="registerPasswordConfirm" placeholder="••••••••"></div><button class="auth-submit-btn" id="registerBtn"><span id="registerBtnText">Registrati</span></button><div class="auth-error" id="registerError"></div><div class="auth-success" id="registerSuccess"></div></div>
-      <div class="auth-footer"><a id="forgotPasswordLink">Password dimenticata?</a></div>
+      <div class="auth-header">
+        <h2>GameTracker Pro</h2>
+        <p>Accedi o registrati per sincronizzare i tuoi giochi</p>
+      </div>
+      
+      <div class="auth-tabs">
+        <div class="auth-tab active" id="loginTab">Accedi</div>
+        <div class="auth-tab" id="registerTab">Registrati</div>
+      </div>
+      
+      <div class="auth-form active" id="loginForm">
+        <div class="auth-form-group">
+          <label for="loginEmail">Email</label>
+          <input type="email" id="loginEmail" placeholder="tua@email.com">
+        </div>
+        <div class="auth-form-group">
+          <label for="loginPassword">Password</label>
+          <input type="password" id="loginPassword" placeholder="••••••••">
+        </div>
+        <button class="auth-submit-btn" id="loginBtn">
+          <span id="loginBtnText">Accedi</span>
+        </button>
+        <div class="auth-error" id="loginError"></div>
+      </div>
+      
+      <div class="auth-form" id="registerForm">
+        <div class="auth-form-group">
+          <label for="registerEmail">Email</label>
+          <input type="email" id="registerEmail" placeholder="tua@email.com">
+        </div>
+        <div class="auth-form-group">
+          <label for="registerPassword">Password</label>
+          <input type="password" id="registerPassword" placeholder="••••••••">
+        </div>
+        <div class="auth-form-group">
+          <label for="registerPasswordConfirm">Conferma Password</label>
+          <input type="password" id="registerPasswordConfirm" placeholder="••••••••">
+        </div>
+        <button class="auth-submit-btn" id="registerBtn">
+          <span id="registerBtnText">Registrati</span>
+        </button>
+        <div class="auth-error" id="registerError"></div>
+        <div class="auth-success" id="registerSuccess"></div>
+      </div>
+      
+      <div class="auth-footer">
+        <a id="forgotPasswordLink">Password dimenticata?</a>
+      </div>
     </div>
   </div>
 
+  <!-- Main App Content (hidden until authenticated) -->
   <div id="appContent" style="display: none;">
     <div class="header-container">
       <div class="header-left">
-        <div class="controls-row top-row"><div class="action-buttons"><div class="add-game-menu-btn"><button id="addGameBtn" class="btn-primary">Aggiungi gioco</button><div class="add-game-menu"><input type="text" id="newGameName" placeholder="Nome del gioco" required aria-label="Nome del gioco" /><div class="cover-dropdown"><input type="text" id="coverSearch" placeholder="🔍 Cerca copertina su IGDB..." aria-label="Cerca copertina" /><div id="coverResults" class="cover-search-results"></div></div><input type="hidden" id="selectedCoverUrl" /><button type="button" id="submitGame" class="btn-primary" style="width: 100%;">Salva</button></div></div><button id="resetBtn" class="btn-danger btn-icon"><i class="fas fa-sync"></i><span>Reset tracker</span></button><button id="exportBtn" class="btn-success btn-icon"><i class="fas fa-download"></i><span>Esporta dati</span></button><input type="file" id="importFile" accept=".json" title="Importa dati JSON" style="display: none;" /><button id="importBtn" class="btn-secondary btn-icon"><i class="fas fa-upload"></i><span>Importa dati</span></button></div></div>
-        <div class="controls-row bottom-row"><div class="search-container"><input type="text" id="gameSearch" placeholder="Cerca giochi..." aria-label="Cerca giochi" /></div><div class="filter-controls"><select id="sortSelect" aria-label="Ordina giochi"><option value="name-asc">Nome (A-Z)</option><option value="name-desc">Nome (Z-A)</option><option value="played">Giocati prima</option><option value="platinum">Con platino</option></select><button id="toggleThemeBtn" class="theme-toggle" title="Cambia tema" aria-label="Cambia tema">🌙</button></div></div>
+        <div class="controls-row top-row">
+          <div class="action-buttons">
+            <div class="add-game-menu-btn">
+              <button id="addGameBtn" class="btn-primary">Aggiungi gioco</button>
+              <div class="add-game-menu">
+                <input type="text" id="newGameName" placeholder="Nome del gioco" required aria-label="Nome del gioco" />
+                <div class="cover-dropdown">
+                  <input type="text" id="coverSearch" placeholder="🔍 Cerca copertina su IGDB..." aria-label="Cerca copertina" />
+                  <div id="coverResults" class="cover-search-results"></div>
+                </div>
+                <input type="hidden" id="selectedCoverUrl" />
+                <button type="button" id="submitGame" class="btn-primary" style="width: 100%;">Salva</button>
+              </div>
+            </div>
+            
+            <button id="resetBtn" class="btn-danger btn-icon">
+              <i class="fas fa-sync"></i>
+              <span>Reset tracker</span>
+            </button>
+            <button id="exportBtn" class="btn-success btn-icon">
+              <i class="fas fa-download"></i>
+              <span>Esporta dati</span>
+            </button>
+            <input type="file" id="importFile" accept=".json" title="Importa dati JSON" style="display: none;" />
+            <button id="importBtn" class="btn-secondary btn-icon">
+              <i class="fas fa-upload"></i>
+              <span>Importa dati</span>
+            </button>
+          </div>
+        </div>
+        
+        <div class="controls-row bottom-row">
+          <div class="search-container">
+            <input type="text" id="gameSearch" placeholder="Cerca giochi..." aria-label="Cerca giochi" />
+          </div>
+          
+          <div class="filter-controls">
+            <select id="sortSelect" aria-label="Ordina giochi">
+              <option value="name-asc">Nome (A-Z)</option>
+              <option value="name-desc">Nome (Z-A)</option>
+              <option value="played">Giocati prima</option>
+              <option value="platinum">Con platino</option>
+            </select>
+            
+            <button id="toggleThemeBtn" class="theme-toggle" title="Cambia tema" aria-label="Cambia tema">🌙</button>
+          </div>
+        </div>
       </div>
+      
       <div class="header-right">
-        <div class="user-profile"><div class="user-avatar" id="userAvatar">U</div><div class="user-email" id="userEmail">user@example.com</div><button class="logout-btn" id="logoutBtn"><span>Esci</span></button></div>
-        <div class="compact-stats"><div class="stat-item"><div class="stat-value" id="statTotal">0</div><div class="stat-label">Totale</div></div><div class="stat-item"><div class="stat-value" id="statCurrent">0</div><div class="stat-label">In Corso</div></div><div class="stat-item"><div class="stat-value" id="statBacklog">0</div><div class="stat-label">Backlog</div></div><div class="stat-item"><div class="stat-value" id="statCompleted">0</div><div class="stat-label">Completati</div></div><div class="stat-item"><div class="stat-value" id="statPlatinum">0</div><div class="stat-label">Platini</div></div></div>
+        <div class="user-profile">
+          <div class="user-avatar" id="userAvatar">U</div>
+          <div class="user-email" id="userEmail">user@example.com</div>
+          <button class="logout-btn" id="logoutBtn">
+            <span>Esci</span>
+          </button>
+        </div>
+        
+        <div class="compact-stats">
+          <div class="stat-item">
+            <div class="stat-value" id="statTotal">0</div>
+            <div class="stat-label">Totale</div>
+          </div>
+          <div class="stat-item">
+            <div class="stat-value" id="statCurrent">0</div>
+            <div class="stat-label">In Corso</div>
+          </div>
+          <div class="stat-item">
+            <div class="stat-value" id="statBacklog">0</div>
+            <div class="stat-label">Backlog</div>
+          </div>
+          <div class="stat-item">
+            <div class="stat-value" id="statCompleted">0</div>
+            <div class="stat-label">Completati</div>
+          </div>
+          <div class="stat-item">
+            <div class="stat-value" id="statPlatinum">0</div>
+            <div class="stat-label">Platini</div>
+          </div>
+        </div>
       </div>
     </div>
-    <div class="games-section current-section"><div class="section-header"><h2 class="section-title">Giochi in Corso</h2><span class="game-count" id="currentCount">0</span></div><div class="current-grid drop-zone" id="currentGrid"></div></div>
-    <div class="split-section"><div class="games-section backlog-column"><div class="section-header"><h2 class="section-title">Backlog</h2><span class="game-count" id="backlogCount">0</span></div><div class="game-grid drop-zone" id="backlogGrid"></div></div><div class="games-section completed-column"><div class="section-header"><h2 class="section-title">Completati</h2><span class="game-count" id="completedCount">0</span></div><div class="game-grid drop-zone" id="completedGrid"></div></div></div>
-    <div id="contextMenu" class="context-menu"><div class="context-menu-item" id="cmRename"><i class="fas fa-edit"></i><span>Cambia nome</span></div><div class="context-menu-item" id="cmChangeImage"><i class="fas fa-image"></i><span>Cambia immagine</span></div><div class="context-menu-item" id="cmToggleCurrent"><i class="fas fa-play-circle"></i><span>Aggiungi a 'in corso'</span></div><div class="context-menu-divider"></div><div class="context-menu-item" id="cmTogglePlatinum"><i class="fas fa-trophy"></i><span>Toggle platino</span></div><div class="context-menu-divider"></div><div class="context-menu-item" id="cmQuickMove"><i class="fas fa-exchange-alt"></i><span>Sposta rapido a...</span></div><div class="context-menu-divider"></div><div class="context-menu-item" id="cmDelete" style="color: var(--danger);"><i class="fas fa-trash-alt"></i><span>Elimina gioco</span></div></div>
-    <div id="quickMoveMenu" class="context-menu" style="display: none;"><div class="context-menu-item move-option" data-target="current"><i class="fas fa-play-circle"></i><span>In Corso</span></div><div class="context-menu-item move-option" data-target="backlog"><i class="fas fa-list"></i><span>Backlog</span></div><div class="context-menu-item move-option" data-target="completed"><i class="fas fa-check-circle"></i><span>Completati</span></div></div>
-    <div id="notification" class="notification"><span id="notificationText"></span></div>
-    <div id="syncStatus" class="sync-status"><span id="syncStatusText">Non connesso</span><button id="forceSyncBtn" style="display:none;">Sinc. ora</button></div>
+
+    <div class="games-section current-section">
+      <div class="section-header">
+        <h2 class="section-title">Giochi in Corso</h2>
+        <span class="game-count" id="currentCount">0</span>
+      </div>
+      <div class="current-grid drop-zone" id="currentGrid"></div>
+    </div>
+
+    <div class="split-section">
+      <div class="games-section backlog-column">
+        <div class="section-header">
+          <h2 class="section-title">Backlog</h2>
+          <span class="game-count" id="backlogCount">0</span>
+        </div>
+        <div class="game-grid drop-zone" id="backlogGrid"></div>
+      </div>
+      
+      <div class="games-section completed-column">
+        <div class="section-header">
+          <h2 class="section-title">Completati</h2>
+          <span class="game-count" id="completedCount">0</span>
+        </div>
+        <div class="game-grid drop-zone" id="completedGrid"></div>
+      </div>
+    </div>
+
+    <div id="contextMenu" class="context-menu">
+      <div class="context-menu-item" id="cmRename">
+        <i class="fas fa-edit"></i>
+        <span>Cambia nome</span>
+      </div>
+      <div class="context-menu-item" id="cmChangeImage">
+        <i class="fas fa-image"></i>
+        <span>Cambia immagine</span>
+      </div>
+      <div class="context-menu-item" id="cmToggleCurrent">
+        <i class="fas fa-play-circle"></i>
+        <span>Aggiungi a 'in corso'</span>
+      </div>
+      <div class="context-menu-divider"></div>
+      <div class="context-menu-item" id="cmTogglePlatinum">
+        <i class="fas fa-trophy"></i>
+        <span>Toggle platino</span>
+      </div>
+      <div class="context-menu-divider"></div>
+      <div class="context-menu-item" id="cmQuickMove">
+        <i class="fas fa-exchange-alt"></i>
+        <span>Sposta rapido a...</span>
+      </div>
+      <div class="context-menu-divider"></div>
+      <div class="context-menu-item" id="cmDelete" style="color: var(--danger);">
+        <i class="fas fa-trash-alt"></i>
+        <span>Elimina gioco</span>
+      </div>
+    </div>
+    
+    <div id="quickMoveMenu" class="context-menu" style="display: none;">
+      <div class="context-menu-item move-option" data-target="current">
+        <i class="fas fa-play-circle"></i>
+        <span>In Corso</span>
+      </div>
+      <div class="context-menu-item move-option" data-target="backlog">
+        <i class="fas fa-list"></i>
+        <span>Backlog</span>
+      </div>
+      <div class="context-menu-item move-option" data-target="completed">
+        <i class="fas fa-check-circle"></i>
+        <span>Completati</span>
+      </div>
+    </div>
+
+    <div id="notification" class="notification">
+      <span id="notificationText"></span>
+    </div>
+    
+    <div id="syncStatus" class="sync-status">
+      <span id="syncStatusText">Non connesso</span>
+      <button id="forceSyncBtn" style="display:none;">Sinc. ora</button>
+    </div>
   </div>
 
   <script>
-    // Firebase Configuration
     const firebaseConfig = {
       apiKey: "AIzaSyDm946nISfZs8ugkuYPraNTzFhvgQmnMUk",
       authDomain: "gametrackerdb.firebaseapp.com",
@@ -217,23 +410,34 @@
     const auth = firebase.auth();
     const database = firebase.database();
 
-    // Constants and other variables remain the same...
     const PLATINUM_ICON_URL = "https://i.psnprofiles.com/guides/18274/470bd2.png";
     const DEFAULT_IMAGE = 'data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIzMDAiIGhlaWdodD0iMTYwIiB2aWV3Qm94PSIwIDAgMzAwIDE2MCI+PHJlY3Qgd2lkdGg9IjMwMCIgaGVpZ2h0PSIxNjAiIGZpbGw9IiNkZGQiLz48dGV4dCB4PSIxNTAiIHk9IjgwIiBmb250LWZhbWlseT0iQXJpYWwiIGZvbnQtc2l6ZT0iMTYiIHRleHQtYW5jaGyPSJtaWRkbGUiIGZpbGw9IiM2NjYiPlImbXVzO2ltbWFnaW5lIG5vbiBkaXNwb25pYmlsZTwvdGV4dD48L3N2Zz4=';
     const IGDB_PROXY = "https://rough-wind-0456.amrit-singh99mail-5e3.workers.dev/";
+    
     const STORAGE_KEY_GAMES = 'custom_games';
     const STORAGE_KEY_PLAYED_PREFIX = 'played_';
     const STORAGE_KEY_IMAGE_PREFIX = 'image_';
     const STORAGE_KEY_PLATINUM_PREFIX = 'platinum_';
     const STORAGE_KEY_CURRENT_PREFIX = 'current_';
     const THEME_KEY = 'user_theme';
+    
     const FORCE_SYNC_COOLDOWN = 30000;
-    const elements = { authModal: document.getElementById("authModal"), loginTab: document.getElementById("loginTab"), registerTab: document.getElementById("registerTab"), loginForm: document.getElementById("loginForm"), registerForm: document.getElementById("registerForm"), loginEmail: document.getElementById("loginEmail"), loginPassword: document.getElementById("loginPassword"), loginBtn: document.getElementById("loginBtn"), loginBtnText: document.getElementById("loginBtnText"), loginError: document.getElementById("loginError"), registerEmail: document.getElementById("registerEmail"), registerPassword: document.getElementById("registerPassword"), registerPasswordConfirm: document.getElementById("registerPasswordConfirm"), registerBtn: document.getElementById("registerBtn"), registerBtnText: document.getElementById("registerBtnText"), registerError: document.getElementById("registerError"), registerSuccess: document.getElementById("registerSuccess"), forgotPasswordLink: document.getElementById("forgotPasswordLink"), logoutBtn: document.getElementById("logoutBtn"), userAvatar: document.getElementById("userAvatar"), userEmail: document.getElementById("userEmail"), appContent: document.getElementById("appContent"), currentGrid: document.getElementById("currentGrid"), backlogGrid: document.getElementById("backlogGrid"), completedGrid: document.getElementById("completedGrid"), currentCount: document.getElementById("currentCount"), backlogCount: document.getElementById("backlogCount"), completedCount: document.getElementById("completedCount"), statTotal: document.getElementById("statTotal"), statCurrent: document.getElementById("statCurrent"), statBacklog: document.getElementById("statBacklog"), statCompleted: document.getElementById("statCompleted"), statPlatinum: document.getElementById("statPlatinum"), body: document.body, themeToggleBtn: document.getElementById('toggleThemeBtn'), contextMenu: document.getElementById('contextMenu'), quickMoveMenu: document.getElementById('quickMoveMenu'), addGameMenu: document.querySelector('.add-game-menu'), addGameBtn: document.getElementById('addGameBtn'), submitGameBtn: document.getElementById('submitGame'), importBtn: document.getElementById('importBtn'), importFile: document.getElementById('importFile'), resetBtn: document.getElementById('resetBtn'), exportBtn: document.getElementById('exportBtn'), gameSearch: document.getElementById('gameSearch'), sortSelect: document.getElementById('sortSelect'), newGameName: document.getElementById('newGameName'), coverSearch: document.getElementById('coverSearch'), coverResults: document.getElementById('coverResults'), selectedCoverUrl: document.getElementById('selectedCoverUrl'), notification: document.getElementById('notification'), notificationText: document.getElementById('notificationText'), syncStatus: document.getElementById('syncStatus'), syncStatusText: document.getElementById('syncStatusText'), forceSyncBtn: document.getElementById('forceSyncBtn') };
-    let currentContextGame = null, draggedGame = null, currentUser = null, isSyncing = !1, lastForceSyncTime = 0, hasChangesToSync = !1;
-    function sanitizeKey(e){return e.toLowerCase().replace(/[^a-z0-9]/gi,"-")}
-    function isValidImageUrl(e){if(!e)return!1;try{return new URL(e),/\.(jpe?g|png|gif|webp|bmp|svg)(\?.*)?$/i.test(e)||/^(https?:\/\/).*\.(jpg|png|gif|webp|bmp|svg)/i.test(e)}catch(e){return!1}}
+    
+    const elements = {
+      authModal:document.getElementById("authModal"),loginTab:document.getElementById("loginTab"),registerTab:document.getElementById("registerTab"),loginForm:document.getElementById("loginForm"),registerForm:document.getElementById("registerForm"),loginEmail:document.getElementById("loginEmail"),loginPassword:document.getElementById("loginPassword"),loginBtn:document.getElementById("loginBtn"),loginBtnText:document.getElementById("loginBtnText"),loginError:document.getElementById("loginError"),registerEmail:document.getElementById("registerEmail"),registerPassword:document.getElementById("registerPassword"),registerPasswordConfirm:document.getElementById("registerPasswordConfirm"),registerBtn:document.getElementById("registerBtn"),registerBtnText:document.getElementById("registerBtnText"),registerError:document.getElementById("registerError"),registerSuccess:document.getElementById("registerSuccess"),forgotPasswordLink:document.getElementById("forgotPasswordLink"),logoutBtn:document.getElementById("logoutBtn"),userAvatar:document.getElementById("userAvatar"),userEmail:document.getElementById("userEmail"),appContent:document.getElementById("appContent"),currentGrid:document.getElementById("currentGrid"),backlogGrid:document.getElementById("backlogGrid"),completedGrid:document.getElementById("completedGrid"),currentCount:document.getElementById("currentCount"),backlogCount:document.getElementById("backlogCount"),completedCount:document.getElementById("completedCount"),statTotal:document.getElementById("statTotal"),statCurrent:document.getElementById("statCurrent"),statBacklog:document.getElementById("statBacklog"),statCompleted:document.getElementById("statCompleted"),statPlatinum:document.getElementById("statPlatinum"),body:document.body,themeToggleBtn:document.getElementById("toggleThemeBtn"),contextMenu:document.getElementById("contextMenu"),quickMoveMenu:document.getElementById("quickMoveMenu"),addGameMenu:document.querySelector(".add-game-menu"),addGameBtn:document.getElementById("addGameBtn"),submitGameBtn:document.getElementById("submitGame"),importBtn:document.getElementById("importBtn"),importFile:document.getElementById("importFile"),resetBtn:document.getElementById("resetBtn"),exportBtn:document.getElementById("exportBtn"),gameSearch:document.getElementById("gameSearch"),sortSelect:document.getElementById("sortSelect"),newGameName:document.getElementById("newGameName"),coverSearch:document.getElementById("coverSearch"),coverResults:document.getElementById("coverResults"),selectedCoverUrl:document.getElementById("selectedCoverUrl"),notification:document.getElementById("notification"),notificationText:document.getElementById("notificationText"),syncStatus:document.getElementById("syncStatus"),syncStatusText:document.getElementById("syncStatusText"),forceSyncBtn:document.getElementById("forceSyncBtn")
+    };
+    
+    let currentContextGame = null;
+    let draggedGame = null;
+    let currentUser = null;
+    let isSyncing = false;
+    let lastForceSyncTime = 0;
+    let hasChangesToSync = false;
+
+    function sanitizeKey(str){return str.toLowerCase().replace(/[^a-z0-9]/gi,"-")}
+    function isValidImageUrl(e){if(!e)return!1;try{return new URL(e),/\.(jpe?g|png|gif|webp|bmp|svg)(\?.*)?$/i.test(e)||/^(https?:\/\/).*\.(jpg|png|gif|webp|bmp|svg)/i.test(e)}catch{return!1}}
     function escapeHtml(e){return e.replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;").replace(/'/g,"&#039;")}
-    function showNotification(e,t=3e3,a="success"){const o=elements.notification,n=elements.notificationText;n.textContent=e,o.className=`notification ${a}`,o.classList.add("show"),setTimeout(()=>{o.classList.remove("show")},t)}
+    function showNotification(e,t=3e3,a="success"){elements.notificationText.textContent=e,elements.notification.className=`notification ${a}`,elements.notification.classList.add("show"),setTimeout(()=>{elements.notification.classList.remove("show")},t)}
     function debounce(e,t){let a;return function(...o){clearTimeout(a),a=setTimeout(()=>e.apply(this,o),t)}}
     function updateSyncStatus(e,t){elements.syncStatus.className="sync-status",elements.syncStatusText.textContent=t;switch(e){case"syncing":elements.syncStatus.classList.add("syncing"),elements.syncStatusText.innerHTML=`<div class="sync-spinner"></div> ${t}`,elements.forceSyncBtn.style.display="none";break;case"success":elements.syncStatus.classList.add("success"),elements.forceSyncBtn.style.display="inline-block";break;case"error":elements.syncStatus.classList.add("error"),elements.forceSyncBtn.style.display="inline-block";break;case"offline":elements.syncStatus.className="sync-status",elements.forceSyncBtn.style.display="inline-block"}}
     function showAuthModal(){elements.authModal.classList.add("active")}
@@ -241,20 +445,17 @@
     function switchToLogin(){elements.loginTab.classList.add("active"),elements.registerTab.classList.remove("active"),elements.loginForm.classList.add("active"),elements.registerForm.classList.remove("active"),elements.loginError.textContent="",elements.registerError.textContent=""}
     function switchToRegister(){elements.loginTab.classList.remove("active"),elements.registerTab.classList.add("active"),elements.loginForm.classList.remove("active"),elements.registerForm.classList.add("active"),elements.loginError.textContent="",elements.registerError.textContent=""}
     function updateUserProfile(e){e?(currentUser=e,elements.userEmail.textContent=e.email,elements.userAvatar.textContent=e.email.charAt(0).toUpperCase(),elements.appContent.style.display="block",hideAuthModal(),loadUserData(),updateSyncStatus("success","Connesso")):(currentUser=null,elements.appContent.style.display="none",showAuthModal(),updateSyncStatus("offline","Non connesso"))}
-    function loadTheme(){const e=localStorage.getItem("theme")||"light";"dark"===e&&(document.body.classList.add("dark"),elements.themeToggle.innerHTML='<i class="fas fa-sun"></i> Tema')}
-    function toggleTheme(){document.body.classList.toggle("dark");const e=document.body.classList.contains("dark");localStorage.setItem("theme",e?"dark":"light"),elements.themeToggle.innerHTML=`\n    <i class="fas fa-${e?"sun":"moon"}"></i> Tema\n  `}
-    
-    // FIX: Updated data path to 'gameTracker'
     function loadUserData() {
         if (!currentUser) return;
         database.ref(`users/${currentUser.uid}/gameTracker`).once('value').then((snapshot) => {
             const data = snapshot.val();
-            if (!data) return;
+            if (!data) {
+                renderGames(); 
+                return;
+            }
             if (data.games) localStorage.setItem(STORAGE_KEY_GAMES, JSON.stringify(data.games));
             if (data.gameStates) {
-                Object.entries(data.gameStates).forEach(([key, value]) => {
-                    localStorage.setItem(key, value);
-                });
+                Object.entries(data.gameStates).forEach(([key, value]) => localStorage.setItem(key, value));
             }
             if (data.theme) {
                 localStorage.setItem(THEME_KEY, data.theme);
@@ -263,70 +464,60 @@
             renderGames();
         });
     }
-
     function queueSync(){hasChangesToSync=!0,syncUserData()}
-    function forceSync(){const e=Date.now();e-lastForceSyncTime<FORCE_SYNC_COOLDOWN?showNotification(`Aspetta ${Math.ceil((FORCE_SYNC_COOLDOWN-(e-lastForceSyncTime))/1e3)} secondi prima di forzare di nuovo la sincronizzazione`,3e3,"warning"):(lastForceSyncTime=e,syncUserData(!0))}
-    
-    // FIX: Updated data path to 'gameTracker'
-    function syncUserData(force = false) {
-        if (!currentUser || isSyncing) {
-            if (!force) hasChangesToSync = true;
+    function forceSync(){const e=Date.now();e-lastForceSyncTime<FORCE_SYNC_COOLDOWN?showNotification(`Aspetta ${Math.ceil((FORCE_SYNC_COOLDOWN-(e-lastForceSyncTime))/1e3)} secondi prima di forzare di nuovo la sincronizzazione`,3e3,"warning"):lastForceSyncTime=e,syncUserData(!0)}
+    function syncUserData(e=!1){if(!currentUser||isSyncing)return void(e||(hasChangesToSync=!0));isSyncing=!0,hasChangesToSync=!1,updateSyncStatus("syncing","Sincronizzazione in corso...");try{const e=loadCustomGames(),t={};e.forEach(e=>{const a=sanitizeKey(e.title);["played_","image_","platinum_","current_"].forEach(o=>{const n=localStorage.getItem(o+a);null!==n&&(t[o+a]=n)})});const a=localStorage.getItem(THEME_KEY)||"dark",o={games:e,gameStates:t,theme:a,lastSync:firebase.database.ServerValue.TIMESTAMP};database.ref(`users/${currentUser.uid}/gameTracker`).set(o).then(()=>{updateSyncStatus("success",`Sincronizzato ${new Date().toLocaleTimeString()}`),showNotification("Dati sincronizzati con successo",2e3,"success")}).catch(e=>{console.error("Sync failed:",e),updateSyncStatus("error","Errore di sincronizzazione"),showNotification("Errore durante la sincronizzazione",4e3,"error"),hasChangesToSync=!0}).finally(()=>{isSyncing=!1})}catch(t){console.error("Sync error:",t),updateSyncStatus("error","Errore di sincronizzazione"),isSyncing=!1,hasChangesToSync=!0}}
+    function loadCustomGames(){try{const e=localStorage.getItem("custom_games");return e?JSON.parse(e):[]}catch(e){return console.error("Error loading games:",e),showNotification("Errore nel caricamento dei giochi",4e3,"error"),[]}}
+    function saveCustomGames(e){try{localStorage.setItem("custom_games",JSON.stringify(e)),queueSync()}catch(e){console.error("Error saving games:",e),showNotification("Errore nel salvataggio dei giochi",4e3,"error")}}
+    function getAllGames(){try{const e=loadCustomGames(),t=elements.sortSelect.value||"name-asc",a=elements.gameSearch.value.toLowerCase();return(a?e.filter(e=>e.title.toLowerCase().includes(a)):e).sort((e,a)=>{const o=sanitizeKey(e.title),n=sanitizeKey(a.title),i=localStorage.getItem("played_"+o)==="true",r=localStorage.getItem("played_"+n)==="true",s=localStorage.getItem("platinum_"+o)==="true",l=localStorage.getItem("platinum_"+n)==="true",c=localStorage.getItem("current_"+o)==="true",d=localStorage.getItem("current_"+n)==="true";if(c!==d)return c?-1:1;switch(t){case"name-asc":return e.title.localeCompare(a.title);case"name-desc":return a.title.localeCompare(e.title);case"played":return i===r?0:i?-1:1;case"platinum":return s===l?0:s?-1:1;default:return 0}})}catch(e){return console.error("Error getting games:",e),showNotification("Errore nel recupero dei giochi",4e3,"error"),[]}}
+    async function searchIGDBGames(e){try{if(IGDB_PROXY.includes("rough-wind-0456")&&console.warn("Using placeholder IGDB proxy URL. Replace with your actual proxy URL."),!e||e.length<3)return[];elements.coverResults.innerHTML='<div class="loading"><div class="loading-spinner"></div><div>Ricerca in corso...</div></div>';const t=await fetch(IGDB_PROXY,{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({search:e,fields:"name,cover.url,platforms.name"})});if(!t.ok)throw new Error(`HTTP error! status: ${t.status}`);const a=await t.json();if(!Array.isArray(a))throw new Error("Invalid response format from IGDB - expected array");return a.filter(e=>e.cover&&e.cover.url)}catch(t){return console.error("IGDB Search Error:",t),showNotification("Errore durante la ricerca: "+t.message,4e3,"error"),[]}}
+    function displayCoverResults(games) {
+        const resultsContainer = elements.coverResults;
+        resultsContainer.innerHTML = '';
+        if (!Array.isArray(games) || games.length === 0) {
+            resultsContainer.innerHTML = `<div class="cover-option" style="justify-content:center;">Nessun risultato trovato<br><small>Prova un altro nome o verifica la connessione</small></div>`;
+            resultsContainer.style.display = 'block';
             return;
         }
-        isSyncing = true;
-        hasChangesToSync = false;
-        updateSyncStatus('syncing', 'Sincronizzazione in corso...');
-        try {
-            const games = loadCustomGames();
-            const gameStates = {};
-            games.forEach(game => {
-                const key = sanitizeKey(game.title);
-                [STORAGE_KEY_PLAYED_PREFIX, STORAGE_KEY_IMAGE_PREFIX, STORAGE_KEY_PLATINUM_PREFIX, STORAGE_KEY_CURRENT_PREFIX].forEach(prefix => {
-                    const value = localStorage.getItem(prefix + key);
-                    if (value !== null) gameStates[prefix + key] = value;
-                });
+        games.forEach(game => {
+            const option = document.createElement('div');
+            option.className = 'cover-option';
+            const platform = game.platforms?.[0]?.name || 'Piattaforma sconosciuta';
+            const thumbUrl = game.cover?.url ? `https:${game.cover.url.replace('t_thumb', 't_cover_small_2x')}` : DEFAULT_IMAGE;
+            option.innerHTML = `<img src="${thumbUrl}" alt="${escapeHtml(game.name)}" onerror="this.src='${DEFAULT_IMAGE}'"><div class="game-info"><div class="game-title">${escapeHtml(game.name || 'Sconosciuto')}</div><div class="game-platform">${escapeHtml(platform)}</div></div>`;
+            option.addEventListener('click', () => {
+                const fullUrl = game.cover?.url ? `https:${game.cover.url.replace('t_thumb', 't_cover_big')}` : DEFAULT_IMAGE;
+                elements.selectedCoverUrl.value = fullUrl;
+                resultsContainer.style.display = 'none';
+                showNotification(`Selezionato: ${escapeHtml(game.name)}`);
             });
-            const theme = localStorage.getItem(THEME_KEY) || 'dark';
-            const userData = { games, gameStates, theme, lastSync: firebase.database.ServerValue.TIMESTAMP };
-            database.ref(`users/${currentUser.uid}/gameTracker`).set(userData)
-                .then(() => {
-                    updateSyncStatus('success', `Sincronizzato ${new Date().toLocaleTimeString()}`);
-                    showNotification('Dati sincronizzati con successo', 2000, 'success');
-                })
-                .catch(error => {
-                    console.error('Sync failed:', error);
-                    updateSyncStatus('error', 'Errore di sincronizzazione');
-                    showNotification('Errore durante la sincronizzazione', 4000, 'error');
-                    hasChangesToSync = true;
-                })
-                .finally(() => { isSyncing = false; });
-        } catch (error) {
-            console.error('Sync error:', error);
-            updateSyncStatus('error', 'Errore di sincronizzazione');
-            isSyncing = false;
-            hasChangesToSync = true;
-        }
+            resultsContainer.appendChild(option);
+        });
+        resultsContainer.style.display = 'block';
     }
-
-    // The rest of the JS functions remain the same as they operate on localStorage
-    function loadCustomGames(){try{const e=localStorage.getItem(STORAGE_KEY_GAMES);return e?JSON.parse(e):[]}catch(e){return console.error("Error loading games:",e),showNotification("Errore nel caricamento dei giochi",4e3,"error"),[]}}
-    function saveCustomGames(e){try{localStorage.setItem(STORAGE_KEY_GAMES,JSON.stringify(e)),queueSync()}catch(e){console.error("Error saving games:",e),showNotification("Errore nel salvataggio dei giochi",4e3,"error")}}
-    function getAllGames(){try{const e=loadCustomGames(),t=elements.sortSelect.value||"name-asc",a=elements.gameSearch.value.toLowerCase(),o=a?e.filter(e=>e.title.toLowerCase().includes(a)):e;return o.sort((e,t)=>{const a=sanitizeKey(e.title),o=sanitizeKey(t.title),n=localStorage.getItem(STORAGE_KEY_PLAYED_PREFIX+a)==="true",i=localStorage.getItem(STORAGE_KEY_PLAYED_PREFIX+o)==="true",s=localStorage.getItem(STORAGE_KEY_PLATINUM_PREFIX+a)==="true",r=localStorage.getItem(STORAGE_KEY_PLATINUM_PREFIX+o)==="true",l=localStorage.getItem(STORAGE_KEY_CURRENT_PREFIX+a)==="true",c=localStorage.getItem(STORAGE_KEY_CURRENT_PREFIX+o)==="true";if(l!==c)return l?-1:1;switch(sortBy){case"name-asc":return e.title.localeCompare(t.title);case"name-desc":return t.title.localeCompare(e.title);case"played":return n===i?0:n?-1:1;case"platinum":return s===r?0:s?-1:1;default:return 0}})}catch(e){return console.error("Error getting games:",e),showNotification("Errore nel recupero dei giochi",4e3,"error"),[]}}
-    async function searchIGDBGames(e){try{if(IGDB_PROXY.includes("rough-wind-0456")&&console.warn("Using placeholder IGDB proxy URL. Replace with your actual proxy URL."),!e||e.length<3)return[];elements.coverResults.innerHTML='<div class="loading"><div class="loading-spinner"></div><div>Ricerca in corso...</div></div>';const t=await fetch(IGDB_PROXY,{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({search:e,fields:"name,cover.url,platforms.name"})});if(!t.ok)throw new Error(`HTTP error! status: ${t.status}`);const a=await t.json();if(!Array.isArray(a))throw new Error("Invalid response format from IGDB - expected array");return a.filter(e=>e.cover&&e.cover.url)}catch(e){return console.error("IGDB Search Error:",e),showNotification("Errore durante la ricerca: "+e.message,4e3,"error"),[]}}
-    function displayCoverResults(e){const t=elements.coverResults;if(t.innerHTML="",!Array.isArray(e)||0===e.length)return t.innerHTML='\n          <div class="cover-option" style="justify-content:center;">\n            Nessun risultato trovato<br>\n            <small>Prova un altro nome o verifica la connessione</small>\n          </div>\n        ',void(t.style.display="block");e.forEach(e=>{const a=document.createElement("div");a.className="cover-option";const o=e.platforms?.[0]?.name||"Piattaforma sconosciuta",n=e.cover?.url?`https:${e.cover.url.replace("t_thumb","t_cover_small_2x")}`:DEFAULT_IMAGE;a.innerHTML=`\n          <img src="${n}" \n               alt="${escapeHtml(e.name)}" \n               onerror="this.src='${DEFAULT_IMAGE}'">\n          <div class="game-info">\n            <div class="game-title">${escapeHtml(e.name||"Sconosciuto")}</div>\n            <div class="game-platform">${escapeHtml(o)}</div>\n          </div>\n        `,a.addEventListener("click",()=>{const t=e.cover?.url?`https:${e.cover.url.replace("t_thumb","t_cover_big")}`:DEFAULT_IMAGE;elements.selectedCoverUrl.value=t,resultsContainer.style.display="none",showNotification(`Selezionato: ${escapeHtml(e.name)}`)}),t.appendChild(a)}),t.style.display="block"}
-    function updateStats(){try{const e=getAllGames();let t=e.length,a=0,o=0,n=0,i=0;e.forEach(e=>{const t=sanitizeKey(e.title),s=localStorage.getItem(STORAGE_KEY_PLAYED_PREFIX+t)==="true",r=localStorage.getItem(STORAGE_KEY_PLATINUM_PREFIX+t)==="true",l=localStorage.getItem(STORAGE_KEY_CURRENT_PREFIX+t)==="true";l?a++:s?n++:o++,r&&i++}),elements.statTotal.textContent=t,elements.statCurrent.textContent=a,elements.statBacklog.textContent=o,elements.statCompleted.textContent=n,elements.statPlatinum.textContent=i}catch(e){console.error("Error updating stats:",e)}}
-    function renderGames(){try{elements.currentGrid.innerHTML="",elements.backlogGrid.innerHTML="",elements.completedGrid.innerHTML="";let e=0,t=0,a=0;getAllGames().forEach(o=>{const n=STORAGE_KEY_PLAYED_PREFIX+sanitizeKey(o.title),i=STORAGE_KEY_IMAGE_PREFIX+sanitizeKey(o.title),s=STORAGE_KEY_PLATINUM_PREFIX+sanitizeKey(o.title),r=STORAGE_KEY_CURRENT_PREFIX+sanitizeKey(o.title),l=localStorage.getItem(n)==="true",c=localStorage.getItem(i)||o.image,d=localStorage.getItem(s)==="true",m=localStorage.getItem(r)==="true",u=document.createElement("div");u.className="game",u.dataset.gameTitle=o.title,u.setAttribute("aria-label",`Gioco: ${o.title}`),u.innerHTML=`\n            <div style="position:relative;">\n              <img src="${c}" alt="${escapeHtml(o.title)}" class="banner" \n                   title="Doppio click per cambiare immagine" \n                   onerror="this.src='${DEFAULT_IMAGE}'" />\n              <button class="copy-btn" aria-label="Copia URL immagine"><i class="fas fa-copy"></i></button>\n              <button class="move-btn" aria-label="Sposta gioco"><i class="fas fa-exchange-alt"></i></button>\n              <button class="remove-btn" aria-label="Rimuovi gioco"><i class="fas fa-times"></i></button>\n            </div>\n            <div class="info">\n              <input type="checkbox" ${l?"checked":""} \n                     title="Segna come giocato" aria-label="Segna come giocato" />\n              <div class="game-title" title="${escapeHtml(o.title)}">${escapeHtml(o.title)}</div>\n              ${d?`<img src="${PLATINUM_ICON_URL}" alt="Platino" class="platinum-icon" />`:""}\n            </div>\n          `,m?(elements.currentGrid.appendChild(u),e++):l?(elements.completedGrid.appendChild(u),a++):(elements.backlogGrid.appendChild(u),t++),setupGameEventListeners(u,o)}),elements.currentCount.textContent=e,elements.backlogCount.textContent=t,elements.completedCount.textContent=a,updateStats(),setupDragAndDrop()}catch(e){console.error("Error rendering games:",e),showNotification("Errore nel rendering dei giochi",4e3,"error")}}
-    function setupGameEventListeners(e,t){const a=STORAGE_KEY_PLAYED_PREFIX+sanitizeKey(t.title),o=STORAGE_KEY_IMAGE_PREFIX+sanitizeKey(t.title),n=STORAGE_KEY_PLATINUM_PREFIX+sanitizeKey(t.title),i=STORAGE_KEY_CURRENT_PREFIX+sanitizeKey(t.title),s=e.querySelector('input[type="checkbox"]');s.addEventListener("change",()=>{localStorage.setItem(a,s.checked.toString()),s.checked&&localStorage.removeItem(i),queueSync(),showNotification(s.checked?`"${t.title}" segnato come completato!`:`"${t.title}" spostato al backlog`),renderGames()});const r=e.querySelector("img.banner");r.addEventListener("dblclick",e=>{e.preventDefault();const a=localStorage.getItem(o)||t.image,i=prompt(`Inserisci il nuovo URL dell'immagine per "${t.title}":`,a);i&&isValidImageUrl(i)?(localStorage.setItem(o,i),queueSync(),showNotification(`Immagine per "${t.title}" aggiornata`),renderGames()):i&&showNotification("URL immagine non valido. Supportati: JPG, PNG, GIF, WEBP, BMP, SVG",4e3,"warning")});const l=e.querySelector(".game-title");l.addEventListener("dblclick",()=>{const e=localStorage.getItem(n)==="true";localStorage.setItem(n,(!e).toString()),queueSync(),showNotification(e?`Platino rimosso da "${t.title}"`:`Platino aggiunto a "${t.title}"!`),renderGames()}),e.querySelector(".remove-btn").addEventListener("click",e=>{e.stopPropagation(),confirm(`Rimuovere "${t.title}" dalla lista?`)&&(deleteGame(t.title),showNotification(`"${t.title}" rimosso dalla lista`))}),e.querySelector(".copy-btn").addEventListener("click",e=>{e.stopPropagation();const a=localStorage.getItem(o)||t.image;navigator.clipboard.writeText(a).then(()=>showNotification("URL immagine copiato negli appunti!")).catch(()=>{const e=prompt("Copia questo URL:",a);null!==e&&showNotification("URL immagine copiato!")})}),e.querySelector(".move-btn").addEventListener("click",e=>{e.stopPropagation(),showQuickMoveMenu(t,e.target)}),e.addEventListener("contextmenu",e=>{e.preventDefault(),showContextMenu(t,e.clientX,e.clientY)})}
-    function showContextMenu(e,t,a){currentContextGame=e,elements.contextMenu.style.display="block";const o=elements.contextMenu.offsetWidth,n=elements.contextMenu.offsetHeight,i=window.innerWidth,s=window.innerHeight,r=Math.min(t,i-o-10),l=Math.min(a,s-n-10);elements.contextMenu.style.left=`${r}px`,elements.contextMenu.style.top=`${l}px`;const c=sanitizeKey(e.title),d=localStorage.getItem(STORAGE_KEY_CURRENT_PREFIX+c)==="true",m=document.getElementById("cmToggleCurrent");m.innerHTML=d?'<i class="fas fa-pause-circle"></i><span>Rimuovi da \'in corso\'</span>':'<i class="fas fa-play-circle"></i><span>Aggiungi a \'in corso\'</span>',document.getElementById("cmTogglePlatinum").innerHTML=localStorage.getItem(STORAGE_KEY_PLATINUM_PREFIX+c)==="true"?'<i class="fas fa-trophy"></i><span>Rimuovi platino</span>':'<i class="fas fa-trophy"></i><span>Aggiungi platino</span>'}
+    function updateStats(){try{const e=getAllGames();let t=e.length,a=0,o=0,n=0,i=0;e.forEach(e=>{const t=sanitizeKey(e.title),r=localStorage.getItem("played_"+t)==="true",s=localStorage.getItem("platinum_"+t)==="true",l=localStorage.getItem("current_"+t)==="true";l?a++:r?n++:o++,s&&i++}),elements.statTotal.textContent=t,elements.statCurrent.textContent=a,elements.statBacklog.textContent=o,elements.statCompleted.textContent=n,elements.statPlatinum.textContent=i}catch(e){console.error("Error updating stats:",e)}}
+    function renderGames(){try{elements.currentGrid.innerHTML="",elements.backlogGrid.innerHTML="",elements.completedGrid.innerHTML="";let e=0,t=0,a=0;getAllGames().forEach(o=>{const n=document.createElement("div");n.className="game",n.dataset.gameTitle=o.title,n.setAttribute("aria-label",`Gioco: ${o.title}`);const i="played_"+sanitizeKey(o.title),r="image_"+sanitizeKey(o.title),s="platinum_"+sanitizeKey(o.title),l="current_"+sanitizeKey(o.title),c=localStorage.getItem(i)==="true",d=localStorage.getItem(r)||o.image,m=localStorage.getItem(s)==="true",u=localStorage.getItem(l)==="true";n.innerHTML=`\n            <div style="position:relative;">\n              <img src="${d}" alt="${escapeHtml(o.title)}" class="banner" \n                   title="Doppio click per cambiare immagine" \n                   onerror="this.src='${DEFAULT_IMAGE}'" />\n              <button class="copy-btn" aria-label="Copia URL immagine"><i class="fas fa-copy"></i></button>\n              <button class="move-btn" aria-label="Sposta gioco"><i class="fas fa-exchange-alt"></i></button>\n              <button class="remove-btn" aria-label="Rimuovi gioco"><i class="fas fa-times"></i></button>\n            </div>\n            <div class="info">\n              <input type="checkbox" ${c?"checked":""} \n                     title="Segna come giocato" aria-label="Segna come giocato" />\n              <div class="game-title" title="${escapeHtml(o.title)}">${escapeHtml(o.title)}</div>\n              ${m?`<img src="${PLATINUM_ICON_URL}" alt="Platino" class="platinum-icon" />`:""}\n            </div>\n          `,u?(elements.currentGrid.appendChild(n),e++):c?(elements.completedGrid.appendChild(n),a++):(elements.backlogGrid.appendChild(n),t++),setupGameEventListeners(n,o)}),elements.currentCount.textContent=e,elements.backlogCount.textContent=t,elements.completedCount.textContent=a,updateStats(),setupDragAndDrop()}catch(e){console.error("Error rendering games:",e),showNotification("Errore nel rendering dei giochi",4e3,"error")}}
+    function setupGameEventListeners(e,t){const a="played_"+sanitizeKey(t.title),o="image_"+sanitizeKey(t.title),n="platinum_"+sanitizeKey(t.title),i="current_"+sanitizeKey(t.title),r=e.querySelector('input[type="checkbox"]');r.addEventListener("change",()=>{localStorage.setItem(a,r.checked.toString()),r.checked&&localStorage.removeItem(i),queueSync(),showNotification(r.checked?`"${t.title}" segnato come completato!`:`"${t.title}" spostato al backlog`),renderGames()});const s=e.querySelector("img.banner");s.addEventListener("dblclick",e=>{e.preventDefault();const a=localStorage.getItem(o)||t.image,r=prompt(`Inserisci il nuovo URL dell'immagine per "${t.title}":`,a);r&&isValidImageUrl(r)?(localStorage.setItem(o,r),queueSync(),showNotification(`Immagine per "${t.title}" aggiornata`),renderGames()):r&&showNotification("URL immagine non valido. Supportati: JPG, PNG, GIF, WEBP, BMP, SVG",4e3,"warning")});const l=e.querySelector(".game-title");l.addEventListener("dblclick",()=>{const e=localStorage.getItem(n)==="true";localStorage.setItem(n,(!e).toString()),queueSync(),showNotification(e?`Platino rimosso da "${t.title}"`:`Platino aggiunto a "${t.title}"!`),renderGames()}),e.querySelector(".remove-btn").addEventListener("click",e=>{e.stopPropagation(),confirm(`Rimuovere "${t.title}" dalla lista?`)&&(deleteGame(t.title),showNotification(`"${t.title}" rimosso dalla lista`))}),e.querySelector(".copy-btn").addEventListener("click",e=>{e.stopPropagation();const a=localStorage.getItem(o)||t.image;navigator.clipboard.writeText(a).then(()=>showNotification("URL immagine copiato negli appunti!")).catch(()=>{const e=prompt("Copia questo URL:",a);null!==e&&showNotification("URL immagine copiato!")})}),e.querySelector(".move-btn").addEventListener("click",e=>{e.stopPropagation(),showQuickMoveMenu(t,e.target)}),e.addEventListener("contextmenu",e=>{e.preventDefault(),showContextMenu(t,e.clientX,e.clientY)})}
+    function showContextMenu(e,t,a){currentContextGame=e,elements.contextMenu.style.display="block";const o=elements.contextMenu.offsetWidth,n=elements.contextMenu.offsetHeight,i=window.innerWidth,r=window.innerHeight,s=Math.min(t,i-o-10),l=Math.min(a,r-n-10);elements.contextMenu.style.left=`${s}px`,elements.contextMenu.style.top=`${l}px`;const c=sanitizeKey(e.title),d=localStorage.getItem("current_"+c)==="true",m=document.getElementById("cmToggleCurrent");m.innerHTML=d?'<i class="fas fa-pause-circle"></i><span>Rimuovi da \'in corso\'</span>':'<i class="fas fa-play-circle"></i><span>Aggiungi a \'in corso\'</span>',document.getElementById("cmTogglePlatinum").innerHTML=localStorage.getItem("platinum_"+c)==="true"?'<i class="fas fa-trophy"></i><span>Rimuovi platino</span>':'<i class="fas fa-trophy"></i><span>Aggiungi platino</span>'}
     function showQuickMoveMenu(e,t){currentContextGame=e;const a=t.getBoundingClientRect();elements.quickMoveMenu.style.display="block",elements.quickMoveMenu.style.left=`${a.left}px`,elements.quickMoveMenu.style.top=`${a.bottom+5}px`}
-    function updateGameName(e,t){if(!t||""===t.trim())return;t=t.trim();const a=loadCustomGames(),o=a.findIndex(t=>t.title===e);if(-1===o)return;const n=sanitizeKey(e),i=sanitizeKey(t);[STORAGE_KEY_PLAYED_PREFIX,STORAGE_KEY_IMAGE_PREFIX,STORAGE_KEY_PLATINUM_PREFIX,STORAGE_KEY_CURRENT_PREFIX].forEach(e=>{const a=localStorage.getItem(e+n);null!==a&&(localStorage.setItem(e+i,a),localStorage.removeItem(e+n))}),a[o].title=t,saveCustomGames(a),showNotification(`Nome cambiato da "${e}" a "${t}"`),renderGames()}
-    function deleteGame(e){const t=loadCustomGames().filter(t=>t.title!==e);saveCustomGames(t);const a=sanitizeKey(e);[STORAGE_KEY_PLAYED_PREFIX,STORAGE_KEY_IMAGE_PREFIX,STORAGE_KEY_PLATINUM_PREFIX,STORAGE_KEY_CURRENT_PREFIX].forEach(e=>localStorage.removeItem(e+a)),queueSync(),renderGames()}
-    function moveGameToSection(e,t){const a=sanitizeKey(e);"current"===t?(localStorage.setItem(STORAGE_KEY_CURRENT_PREFIX+a,"true"),localStorage.setItem(STORAGE_KEY_PLAYED_PREFIX+a,"false"),queueSync(),showNotification(`"${e}" spostato ai giochi in corso`)):"completed"===t?(localStorage.setItem(STORAGE_KEY_PLAYED_PREFIX+a,"true"),localStorage.removeItem(STORAGE_KEY_CURRENT_PREFIX+a),queueSync(),showNotification(`"${e}" spostato ai giochi completati`)):(localStorage.setItem(STORAGE_KEY_PLAYED_PREFIX+a,"false"),localStorage.removeItem(STORAGE_KEY_CURRENT_PREFIX+a),queueSync(),showNotification(`"${e}" spostato al backlog`)),renderGames()}
-    function setupDragAndDrop(){let e=null;document.querySelectorAll(".game").forEach(t=>{t.setAttribute("draggable","true"),t.addEventListener("dragstart",a=>{e=t,t.classList.add("dragging"),a.dataTransfer.setData("text/plain",t.dataset.gameTitle),a.dataTransfer.effectAllowed="move"}),t.addEventListener("dragend",()=>{t.classList.remove("dragging"),document.querySelectorAll(".drop-zone").forEach(e=>e.classList.remove("active"))})}),document.querySelectorAll(".drop-zone").forEach(t=>{t.addEventListener("dragover",t=>{t.preventDefault(),e&&(t.dataTransfer.dropEffect="move",zone.classList.add("active"))}),t.addEventListener("dragleave",()=>{t.classList.remove("active")}),t.addEventListener("drop",a=>{a.preventDefault(),t.classList.remove("active");if(!e)return;const o=a.dataTransfer.getData("text/plain"),n=t.closest(".current-section, .backlog-column, .completed-column");n&&o&&(n.classList.contains("current-section")?moveGameToSection(o,"current"):n.classList.contains("completed-column")?moveGameToSection(o,"completed"):moveGameToSection(o,"backlog"),e=null)})})}
-    function applyTheme(e){elements.body.classList.remove("light","dark"),"light"===e?(elements.body.classList.add("light"),elements.themeToggleBtn.textContent="🌙",elements.themeToggleBtn.title="Passa a tema scuro"):(elements.body.classList.add("dark"),elements.themeToggleBtn.textContent="☀️",elements.themeToggleBtn.title="Passa a tema chiaro"),localStorage.setItem(THEME_KEY,e),queueSync()}
-    function init(){auth.onAuthStateChanged(e=>{updateUserProfile(e)}),setupEventListeners();const e=localStorage.getItem(THEME_KEY)||"dark";applyTheme(e)}
-    function setupEventListeners(){elements.loginTab.addEventListener("click",switchToLogin),elements.registerTab.addEventListener("click",switchToRegister),elements.loginBtn.addEventListener("click",()=>{const e=elements.loginEmail.value,t=elements.loginPassword.value;if(!e||!t)return void(elements.loginError.textContent="Inserisci email e password");elements.loginBtn.disabled=!0,elements.loginBtnText.innerHTML='<span class="auth-loading"></span> Accesso in corso...',auth.signInWithEmailAndPassword(e,t).catch(e=>{elements.loginError.textContent=getAuthErrorMessage(e),elements.loginBtn.disabled=!1,elements.loginBtnText.textContent="Accedi"})}),elements.registerBtn.addEventListener("click",()=>{const e=elements.registerEmail.value,t=elements.registerPassword.value,a=elements.registerPasswordConfirm.value;if(!e||!t||!a)return void(elements.registerError.textContent="Compila tutti i campi");if(t!==a)return void(elements.registerError.textContent="Le password non coincidono");if(t.length<6)return void(elements.registerError.textContent="La password deve avere almeno 6 caratteri");elements.registerBtn.disabled=!0,elements.registerBtnText.innerHTML='<span class="auth-loading"></span> Registrazione in corso...',auth.createUserWithEmailAndPassword(e,t).then(()=>{elements.registerError.textContent="",elements.registerSuccess.textContent="Registrazione completata!",elements.registerBtn.disabled=!1,elements.registerBtnText.textContent="Registrati"}).catch(e=>{elements.registerError.textContent=getAuthErrorMessage(e),elements.registerBtn.disabled=!1,elements.registerBtnText.textContent="Registrati"})}),elements.forgotPasswordLink.addEventListener("click",()=>{const e=elements.loginEmail.value||prompt("Inserisci la tua email per reimpostare la password:");e&&auth.sendPasswordResetEmail(e).then(()=>showNotification("Email di recupero inviata. Controlla la tua casella di posta.",5e3)).catch(e=>showNotification(getAuthErrorMessage(e),4e3,"error"))}),elements.logoutBtn.addEventListener("click",()=>{auth.signOut().then(()=>showNotification("Disconnessione effettuata")).catch(e=>showNotification("Errore durante la disconnessione",4e3,"error"))}),elements.themeToggleBtn.addEventListener("click",()=>{const e=elements.body.classList.contains("light")?"light":"dark",t="light"===e?"dark":"light";applyTheme(t),showNotification(`Tema ${"dark"===t?"scuro":"chiaro"} attivato`)}),elements.sortSelect.addEventListener("change",renderGames),elements.gameSearch.addEventListener("input",renderGames),elements.coverSearch.addEventListener("input",debounce(async e=>{const t=e.target.value.trim();if(t.length<3)return void(elements.coverResults.style.display="none");elements.coverResults.innerHTML='<div class="loading"><div class="loading-spinner"></div><div>Ricerca in corso...</div></div>',elements.coverResults.style.display="block";const a=await searchIGDBGames(t);displayCoverResults(a)},500)),document.addEventListener("click",e=>{e.target.closest(".cover-dropdown")||(elements.coverResults.style.display="none")}),elements.resetBtn.addEventListener("click",()=>{confirm("Sei sicuro di voler resettare il tracker? Tutti i dati verranno persi.")&&(getAllGames().forEach(e=>{[STORAGE_KEY_PLAYED_PREFIX,STORAGE_KEY_IMAGE_PREFIX,STORAGE_KEY_PLATINUM_PREFIX,STORAGE_KEY_CURRENT_PREFIX].forEach(t=>localStorage.removeItem(t+sanitizeKey(e.title)))}),localStorage.removeItem(STORAGE_KEY_GAMES),queueSync(),showNotification("Tracker resettato con successo"),renderGames())}),elements.exportBtn.addEventListener("click",()=>{const e={},t=loadCustomGames();e[STORAGE_KEY_GAMES]=JSON.stringify(t),t.forEach(t=>{const a=sanitizeKey(t.title);[STORAGE_KEY_PLAYED_PREFIX,STORAGE_KEY_IMAGE_PREFIX,STORAGE_KEY_PLATINUM_PREFIX,STORAGE_KEY_CURRENT_PREFIX].forEach(e=>{const o=localStorage.getItem(e+a);null!==o&&(data[e+a]=o)})});try{const t=new Blob([JSON.stringify(data,null,2)],{type:"application/json"}),a=URL.createObjectURL(t),o=document.createElement("a");o.href=a,o.download=`game_tracker_data_${(new Date).toISOString().split("T")[0]}.json`,o.click(),URL.revokeObjectURL(a),showNotification("Dati esportati con successo!")}catch(e){showNotification("Errore durante l'esportazione: "+e.message,4e3,"error")}}),elements.importBtn.addEventListener("click",()=>elements.importFile.click()),elements.importFile.addEventListener("change",e=>{const t=e.target.files[0];if(!t)return;if(t.size>2097152)return showNotification("File troppo grande (max 2MB)",4e3,"error"),void(e.target.value="");const a=new FileReader;a.onload=t=>{try{const a=JSON.parse(t.target.result);if(!a[STORAGE_KEY_GAMES])throw new Error("Formato file non valido");if(!confirm("Importare questi dati? I dati esistenti verranno sovrascritti."))return;const o=loadCustomGames();o.forEach(e=>{const t=sanitizeKey(e.title);[STORAGE_KEY_PLAYED_PREFIX,STORAGE_KEY_IMAGE_PREFIX,STORAGE_KEY_PLATINUM_PREFIX,STORAGE_KEY_CURRENT_PREFIX].forEach(e=>localStorage.removeItem(e+t))}),Object.entries(a).forEach(([e,t])=>localStorage.setItem(e,t)),queueSync(),renderGames();const n=JSON.parse(a[STORAGE_KEY_GAMES]);showNotification(`Importati ${n.length} giochi con successo!`)}catch(t){showNotification(`Errore durante l'importazione: ${t.message}`,4e3,"error"),console.error(t)}e.target.value=""},a.onerror=()=>{showNotification("Errore nella lettura del file",4e3,"error"),e.target.value=""},a.readAsText(t)}),elements.addGameBtn.addEventListener("click",e=>{e.stopPropagation(),elements.addGameMenu.classList.toggle("active")}),elements.submitGameBtn.addEventListener("click",()=>{const e=elements.newGameName.value.trim(),t=elements.selectedCoverUrl.value||DEFAULT_IMAGE;if(!e)return void showNotification("Inserisci il nome del gioco",3e3,"warning");const a=loadCustomGames();if(a.some(t=>t.title.toLowerCase()===e.toLowerCase()))return void showNotification("Il gioco è già presente nella lista.",3e3,"warning");a.push({title:e,image:t}),saveCustomGames(a),localStorage.setItem(STORAGE_KEY_CURRENT_PREFIX+sanitizeKey(e),"true"),localStorage.setItem(STORAGE_KEY_IMAGE_PREFIX+sanitizeKey(e),t),elements.newGameName.value="",elements.coverSearch.value="",elements.selectedCoverUrl.value="",elements.coverResults.innerHTML="",elements.addGameMenu.classList.remove("active"),showNotification(`"${e}" aggiunto ai giochi in corso!`),renderGames()}),document.addEventListener("click",e=>{e.target.closest(".context-menu")||e.target.closest(".context-menu-item")||e.target.closest(".game")||(elements.contextMenu.style.display="none"),e.target.closest(".quick-move-menu")||e.target.classList.contains("move-btn")||(elements.quickMoveMenu.style.display="none"),e.target.closest(".add-game-menu")||e.target===elements.addGameBtn||elements.addGameMenu.classList.remove("active")}),document.addEventListener("contextmenu",e=>{e.target.closest(".game")||"block"!==elements.contextMenu.style.display||(elements.contextMenu.style.display="none")}),document.getElementById("cmRename").addEventListener("click",()=>{if(!currentContextGame)return;const e=prompt("Inserisci il nuovo nome:",currentContextGame.title);e&&""!==e.trim()&&updateGameName(currentContextGame.title,e.trim()),elements.contextMenu.style.display="none"}),document.getElementById("cmChangeImage").addEventListener("click",()=>{if(!currentContextGame)return;const e=STORAGE_KEY_IMAGE_PREFIX+sanitizeKey(currentContextGame.title),t=localStorage.getItem(e)||currentContextGame.image,a=prompt("Inserisci il nuovo URL immagine:",t);a&&isValidImageUrl(a)?(localStorage.setItem(e,a),queueSync(),showNotification(`Immagine per "${currentContextGame.title}" aggiornata`),renderGames()):a&&showNotification("URL immagine non valido!",3e3,"warning"),elements.contextMenu.style.display="none"}),document.getElementById("cmTogglePlatinum").addEventListener("click",()=>{if(!currentContextGame)return;const e=STORAGE_KEY_PLATINUM_PREFIX+sanitizeKey(currentContextGame.title),t=localStorage.getItem(e)!=="true";localStorage.setItem(e,t.toString()),queueSync(),showNotification(t?`Platino aggiunto a "${currentContextGame.title}"!`:`Platino rimosso da "${currentContextGame.title}"`),renderGames(),elements.contextMenu.style.display="none"}),document.getElementById("cmToggleCurrent").addEventListener("click",()=>{if(!currentContextGame)return;const e=STORAGE_KEY_CURRENT_PREFIX+sanitizeKey(currentContextGame.title),t=localStorage.getItem(e)!=="true";localStorage.setItem(e,t.toString()),t&&localStorage.setItem(STORAGE_KEY_PLAYED_PREFIX+sanitizeKey(currentContextGame.title),"false"),queueSync(),showNotification(t?`"${currentContextGame.title}" aggiunto ai giochi in corso!`:`"${currentContextGame.title}" rimosso dai giochi in corso`),renderGames(),elements.contextMenu.style.display="none"}),document.getElementById("cmQuickMove").addEventListener("click",e=>{e.stopPropagation();const t=elements.contextMenu.getBoundingClientRect();elements.quickMoveMenu.style.display="block",elements.quickMoveMenu.style.left=`${t.left+t.width}px`,elements.quickMoveMenu.style.top=`${t.top}px`}),document.querySelectorAll(".move-option").forEach(e=>{e.addEventListener("click",()=>{if(!currentContextGame)return;const t=e.dataset.target;moveGameToSection(currentContextGame.title,t),elements.contextMenu.style.display="none",elements.quickMoveMenu.style.display="none"})}),document.getElementById("cmDelete").addEventListener("click",()=>{currentContextGame&&(confirm(`Eliminare "${currentContextGame.title}" dalla lista?`)&&(deleteGame(currentContextGame.title),showNotification(`"${currentContextGame.title}" rimosso dalla lista`)),elements.contextMenu.style.display="none")}),document.addEventListener("keydown",e=>{"Escape"===e.key&&(elements.contextMenu.style.display="none",elements.quickMoveMenu.style.display="none",elements.addGameMenu.classList.remove("active"),elements.coverResults.style.display="none")}),elements.forceSyncBtn.addEventListener("click",forceSync),elements.loginBtn.addEventListener("click",()=>{const e=new firebase.auth.GoogleAuthProvider;auth.signInWithPopup(e).catch(e=>{console.error("Login error:",e),showNotification("Errore durante il login","error")})}),elements.logoutBtn.addEventListener("click",()=>{auth.signOut().catch(e=>{console.error("Logout error:",e),showNotification("Errore durante il logout","error")})}),elements.shareBtn.addEventListener("click",shareProfile)}
-    function getAuthErrorMessage(e){switch(e.code){case"auth/invalid-email":return"Email non valida";case"auth/user-disabled":return"Account disabilitato";case"auth/user-not-found":return"Account non trovato";case"auth/wrong-password":return"Password errata";case"auth/email-already-in-use":return"Email già in uso";case"auth/operation-not-allowed":return"Operazione non permessa";case"auth/weak-password":return"Password troppo debole (min. 6 caratteri)";case"auth/too-many-requests":return"Troppi tentativi. Riprova più tardi.";default:return"Errore durante l'autenticazione"}}
+    function updateGameName(e,t){if(!t||""===t.trim())return;t=t.trim();const a=loadCustomGames(),o=a.findIndex(t=>t.title===e);if(-1===o)return;const n=sanitizeKey(e),i=sanitizeKey(t);["played_","image_","platinum_","current_"].forEach(e=>{const a=localStorage.getItem(e+n);null!==a&&(localStorage.setItem(e+i,a),localStorage.removeItem(e+n))}),a[o].title=t,saveCustomGames(a),showNotification(`Nome cambiato da "${e}" a "${t}"`),renderGames()}
+    function deleteGame(e){const t=loadCustomGames().filter(t=>t.title!==e);saveCustomGames(t),["played_","image_","platinum_","current_"].forEach(t=>localStorage.removeItem(t+sanitizeKey(e))),queueSync(),renderGames()}
+    function moveGameToSection(e,t){const a=sanitizeKey(e);"current"===t?(localStorage.setItem("current_"+a,"true"),localStorage.setItem("played_"+a,"false"),queueSync(),showNotification(`"${e}" spostato ai giochi in corso`)):"completed"===t?(localStorage.setItem("played_"+a,"true"),localStorage.removeItem("current_"+a),queueSync(),showNotification(`"${e}" spostato ai giochi completati`)):(localStorage.setItem("played_"+a,"false"),localStorage.removeItem("current_"+a),queueSync(),showNotification(`"${e}" spostato al backlog`)),renderGames()}
+    function setupDragAndDrop(){let e=null;document.querySelectorAll(".game").forEach(t=>{t.setAttribute("draggable","true"),t.addEventListener("dragstart",a=>{e=t,t.classList.add("dragging"),a.dataTransfer.setData("text/plain",t.dataset.gameTitle),a.dataTransfer.effectAllowed="move"}),t.addEventListener("dragend",()=>{t.classList.remove("dragging"),document.querySelectorAll(".drop-zone").forEach(e=>e.classList.remove("active"))})}),document.querySelectorAll(".drop-zone").forEach(t=>{t.addEventListener("dragover",t=>{t.preventDefault(),e&&(t.dataTransfer.dropEffect="move",t.classList.add("active"))}),t.addEventListener("dragleave",()=>{t.classList.remove("active")}),t.addEventListener("drop",a=>{a.preventDefault(),t.classList.remove("active");if(!e)return;const o=a.dataTransfer.getData("text/plain"),n=t.closest(".current-section, .backlog-column, .completed-column");n&&o&&(n.classList.contains("current-section")?moveGameToSection(o,"current"):n.classList.contains("completed-column")?moveGameToSection(o,"completed"):moveGameToSection(o,"backlog"),e=null)})})}
+    function applyTheme(e){elements.body.classList.remove("light","dark"),"light"===e?(elements.body.classList.add("light"),elements.themeToggleBtn.textContent="🌙",elements.themeToggleBtn.title="Passa a tema scuro"):(elements.body.classList.add("dark"),elements.themeToggleBtn.textContent="☀️",elements.themeToggleBtn.title="Passa a tema chiaro"),localStorage.setItem("user_theme",e),queueSync()}
+    
+    function init() {
+      auth.onAuthStateChanged(user => {
+        updateUserProfile(user);
+      });
+      setupEventListeners();
+      const savedTheme = localStorage.getItem(THEME_KEY) || 'dark';
+      applyTheme(savedTheme, false);
+    }
+    
+    function setupEventListeners(){elements.loginTab.addEventListener("click",switchToLogin),elements.registerTab.addEventListener("click",switchToRegister),elements.loginBtn.addEventListener("click",()=>{const e=elements.loginEmail.value,t=elements.loginPassword.value;e&&t?(elements.loginBtn.disabled=!0,elements.loginBtnText.innerHTML='<span class="auth-loading"></span> Accesso in corso...',auth.signInWithEmailAndPassword(e,t).catch(e=>{elements.loginError.textContent=getAuthErrorMessage(e),elements.loginBtn.disabled=!1,elements.loginBtnText.textContent="Accedi"})):elements.loginError.textContent="Inserisci email e password"}),elements.registerBtn.addEventListener("click",()=>{const e=elements.registerEmail.value,t=elements.registerPassword.value,a=elements.registerPasswordConfirm.value;e&&t&&a?t!==a?elements.registerError.textContent="Le password non coincidono":t.length<6?elements.registerError.textContent="La password deve avere almeno 6 caratteri":(elements.registerBtn.disabled=!0,elements.registerBtnText.innerHTML='<span class="auth-loading"></span> Registrazione in corso...',auth.createUserWithEmailAndPassword(e,t).then(()=>{elements.registerError.textContent="",elements.registerSuccess.textContent="Registrazione completata!",elements.registerBtn.disabled=!1,elements.registerBtnText.textContent="Registrati"}).catch(e=>{elements.registerError.textContent=getAuthErrorMessage(e),elements.registerBtn.disabled=!1,elements.registerBtnText.textContent="Registrati"})):elements.registerError.textContent="Compila tutti i campi"}),elements.forgotPasswordLink.addEventListener("click",()=>{const e=elements.loginEmail.value||prompt("Inserisci la tua email per reimpostare la password:");e&&auth.sendPasswordResetEmail(e).then(()=>{showNotification("Email di recupero inviata. Controlla la tua casella di posta.",5e3)}).catch(e=>{showNotification(getAuthErrorMessage(e),4e3,"error")})}),elements.logoutBtn.addEventListener("click",()=>{auth.signOut().then(()=>showNotification("Disconnessione effettuata")).catch(e=>{showNotification("Errore durante la disconnessione",4e3,"error")})}),elements.themeToggleBtn.addEventListener("click",()=>{const e=elements.body.classList.contains("light")?"light":"dark",t="light"===e?"dark":"light";applyTheme(t),showNotification(`Tema ${"dark"===t?"scuro":"chiaro"} attivato`)}),elements.sortSelect.addEventListener("change",renderGames),elements.gameSearch.addEventListener("input",renderGames),elements.coverSearch.addEventListener("input",debounce(async e=>{const t=e.target.value.trim();if(t.length<3)return void(elements.coverResults.style.display="none");elements.coverResults.innerHTML='<div class="loading"><div class="loading-spinner"></div><div>Ricerca in corso...</div></div>',elements.coverResults.style.display="block";const a=await searchIGDBGames(t);displayCoverResults(a)},500)),document.addEventListener("click",e=>{e.target.closest(".cover-dropdown")||(elements.coverResults.style.display="none")}),elements.resetBtn.addEventListener("click",()=>{confirm("Sei sicuro di voler resettare il tracker? Tutti i dati verranno persi.")&&(getAllGames().forEach(e=>{["played_","image_","platinum_","current_"].forEach(t=>localStorage.removeItem(t+sanitizeKey(e.title)))}),localStorage.removeItem("custom_games"),queueSync(),showNotification("Tracker resettato con successo"),renderGames())}),elements.exportBtn.addEventListener("click",()=>{const e={},t=loadCustomGames();e.custom_games=JSON.stringify(t),t.forEach(t=>{const a=sanitizeKey(t.title);["played_","image_","platinum_","current_"].forEach(e=>{const o=localStorage.getItem(e+a);null!==o&&(e[e+a]=o)})});try{const a=new Blob([JSON.stringify(e,null,2)],{type:"application/json"}),o=URL.createObjectURL(a),n=document.createElement("a");n.href=o,n.download=`game_tracker_data_${(new Date).toISOString().split("T")[0]}.json`,n.click(),URL.revokeObjectURL(o),showNotification("Dati esportati con successo!")}catch(e){showNotification("Errore durante l'esportazione: "+e.message,4e3,"error")}}),elements.importBtn.addEventListener("click",()=>elements.importFile.click()),elements.importFile.addEventListener("change",e=>{const t=e.target.files[0];if(!t)return;if(t.size>2097152)return showNotification("File troppo grande (max 2MB)",4e3,"error"),void(e.target.value="");const a=new FileReader;a.onload=t=>{try{const a=JSON.parse(t.target.result);if(!a.custom_games)throw new Error("Formato file non valido");if(!confirm("Importare questi dati? I dati esistenti verranno sovrascritti."))return;const o=loadCustomGames();o.forEach(e=>{const t=sanitizeKey(e.title);["played_","image_","platinum_","current_"].forEach(e=>localStorage.removeItem(e+t))}),Object.entries(a).forEach(([e,t])=>{localStorage.setItem(e,t)}),queueSync(),renderGames();const n=JSON.parse(a.custom_games);showNotification(`Importati ${n.length} giochi con successo!`)}catch(t){showNotification(`Errore durante l'importazione: ${t.message}`,4e3,"error"),console.error(t)}e.target.value=""},a.onerror=()=>{showNotification("Errore nella lettura del file",4e3,"error"),e.target.value=""},a.readAsText(t)}),elements.addGameBtn.addEventListener("click",e=>{e.stopPropagation(),elements.addGameMenu.classList.toggle("active")}),elements.submitGameBtn.addEventListener("click",()=>{const e=elements.newGameName.value.trim(),t=elements.selectedCoverUrl.value||DEFAULT_IMAGE;if(!e)return void showNotification("Inserisci il nome del gioco",3e3,"warning");const a=loadCustomGames();if(a.some(t=>t.title.toLowerCase()===e.toLowerCase()))return void showNotification("Il gioco è già presente nella lista.",3e3,"warning");a.push({title:e,image:t}),saveCustomGames(a),localStorage.setItem("current_"+sanitizeKey(e),"true"),localStorage.setItem("image_"+sanitizeKey(e),t),elements.newGameName.value="",elements.coverSearch.value="",elements.selectedCoverUrl.value="",elements.coverResults.innerHTML="",elements.addGameMenu.classList.remove("active"),showNotification(`"${e}" aggiunto ai giochi in corso!`),renderGames()}),document.addEventListener("click",e=>{e.target.closest(".context-menu")||e.target.closest(".game")||(elements.contextMenu.style.display="none"),e.target.closest(".quickMoveMenu")||e.target.classList.contains("move-btn")||(elements.quickMoveMenu.style.display="none"),e.target.closest(".add-game-menu")||e.target===elements.addGameBtn||elements.addGameMenu.classList.remove("active")}),document.addEventListener("contextmenu",e=>{e.target.closest(".game")||"block"!==elements.contextMenu.style.display||(elements.contextMenu.style.display="none")}),document.getElementById("cmRename").addEventListener("click",()=>{if(!currentContextGame)return;const e=prompt("Inserisci il nuovo nome:",currentContextGame.title);e&&""!==e.trim()&&updateGameName(currentContextGame.title,e.trim()),elements.contextMenu.style.display="none"}),document.getElementById("cmChangeImage").addEventListener("click",()=>{if(!currentContextGame)return;const e="image_"+sanitizeKey(currentContextGame.title),t=localStorage.getItem(e)||currentContextGame.image,a=prompt("Inserisci il nuovo URL immagine:",t);a&&isValidImageUrl(a)?(localStorage.setItem(e,a),queueSync(),showNotification(`Immagine per "${currentContextGame.title}" aggiornata`),renderGames()):a&&showNotification("URL immagine non valido!",3e3,"warning"),elements.contextMenu.style.display="none"}),document.getElementById("cmTogglePlatinum").addEventListener("click",()=>{if(!currentContextGame)return;const e="platinum_"+sanitizeKey(currentContextGame.title),t="true"!==localStorage.getItem(e);localStorage.setItem(e,t.toString()),queueSync(),showNotification(t?`Platino aggiunto a "${currentContextGame.title}"!`:`Platino rimosso da "${currentContextGame.title}"`),renderGames(),elements.contextMenu.style.display="none"}),document.getElementById("cmToggleCurrent").addEventListener("click",()=>{if(!currentContextGame)return;const e="current_"+sanitizeKey(currentContextGame.title),t="true"!==localStorage.getItem(e);localStorage.setItem(e,t.toString()),t&&localStorage.setItem("played_"+sanitizeKey(currentContextGame.title),"false"),queueSync(),showNotification(t?`"${currentContextGame.title}" aggiunto ai giochi in corso!`:`"${currentContextGame.title}" rimosso dai giochi in corso`),renderGames(),elements.contextMenu.style.display="none"}),document.getElementById("cmQuickMove").addEventListener("click",e=>{e.stopPropagation();const t=elements.contextMenu.getBoundingClientRect();elements.quickMoveMenu.style.display="block",elements.quickMoveMenu.style.left=`${t.left+t.width}px`,elements.quickMoveMenu.style.top=`${t.top}px`}),document.querySelectorAll(".move-option").forEach(e=>{e.addEventListener("click",()=>{if(!currentContextGame)return;const t=e.dataset.target;moveGameToSection(currentContextGame.title,t),elements.contextMenu.style.display="none",elements.quickMoveMenu.style.display="none"})}),document.getElementById("cmDelete").addEventListener("click",()=>{currentContextGame&&confirm(`Eliminare "${currentContextGame.title}" dalla lista?`)&&(deleteGame(currentContextGame.title),showNotification(`"${currentContextGame.title}" rimosso dalla lista`)),elements.contextMenu.style.display="none"}),document.addEventListener("keydown",e=>{"Escape"===e.key&&(elements.contextMenu.style.display="none",elements.quickMoveMenu.style.display="none",elements.addGameMenu.classList.remove("active"),elements.coverResults.style.display="none")}),elements.forceSyncBtn.addEventListener("click",forceSync)}
+    
+    function getAuthErrorMessage(error){switch(error.code){case"auth/invalid-email":return"Email non valida";case"auth/user-disabled":return"Account disabilitato";case"auth/user-not-found":return"Account non trovato";case"auth/wrong-password":return"Password errata";case"auth/email-already-in-use":return"Email già in uso";case"auth/operation-not-allowed":return"Operazione non permessa";case"auth/weak-password":return"Password troppo debole (min. 6 caratteri)";case"auth/too-many-requests":return"Troppi tentativi. Riprova più tardi.";default:return"Errore durante l'autenticazione"}}
 
     document.addEventListener('DOMContentLoaded', init);
   </script>
