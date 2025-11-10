@@ -205,28 +205,45 @@
       });
     });
 
-    function setupNav() {
-        const navButtons = document.querySelectorAll('.nav-button');
-        const gameSections = document.querySelectorAll('.game-section');
+// CANCELLA LA VECCHIA FUNZIONE setupNav E INCOLLA QUESTA
 
-        function showSection(sectionId) {
-            gameSections.forEach(section => section.classList.remove('active'));
-            navButtons.forEach(button => button.classList.remove('active'));
+function setupNav() {
+    const navButtons = document.querySelectorAll('.nav-button');
+    const gameSections = document.querySelectorAll('.game-section');
 
-            document.getElementById(sectionId).classList.add('active');
-            document.getElementById(`btn${sectionId.replace('Section', '')}`).classList.add('active');
+    function showSection(targetSectionId) {
+        // Nascondi tutte le sezioni e rimuovi 'active' da tutti i pulsanti
+        gameSections.forEach(section => section.classList.remove('active'));
+        navButtons.forEach(button => button.classList.remove('active'));
+
+        // Mostra la sezione target
+        const sectionToShow = document.getElementById(targetSectionId);
+        if (sectionToShow) {
+            sectionToShow.classList.add('active');
         }
 
-        navButtons.forEach(button => {
-            button.addEventListener('click', () => {
-                const targetSection = button.id.replace('btn', '') + 'Section';
-                showSection(targetSection);
-            });
-        });
-        
-        // Mostra la prima sezione di default
-        showSection('currentSection');
+        // Trova il pulsante corrispondente e aggiungi 'active'
+        // Questo è il modo corretto, senza manipolare le stringhe in modo errato
+        const activeButtonId = 'btn' + targetSectionId.charAt(0).toUpperCase() + targetSectionId.slice(1).replace('Section', '');
+        const activeButton = document.getElementById(activeButtonId);
+        if (activeButton) {
+            activeButton.classList.add('active');
+        }
     }
+
+    navButtons.forEach(button => {
+        button.addEventListener('click', () => {
+            // Estrai il target dal nome del pulsante (es. da "btnCurrent" a "current")
+            const target = button.id.replace('btn', '');
+            // Ricostruisci l'ID della sezione (es. "current" -> "currentSection")
+            const targetSectionId = target.charAt(0).toLowerCase() + target.slice(1) + 'Section';
+            showSection(targetSectionId);
+        });
+    });
+    
+    // Mostra la prima sezione ("In Corso") di default
+    showSection('currentSection');
+}
   </script>
 </body>
 </html>
