@@ -4,7 +4,7 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>Libreria di Gioco</title>
-  <link rel="icon" href="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCA2NDAgNTEyIj48cGF0aCBmaWxsPSIjM0E4NkZGIiBkPSJNNjAzLjkgMTM1LjVjLTYxLTQxLjgtMTMyLjQtNTQuNy0yMDAtNTQuN0gzMzJjLTYwIDAtMTE1LjggMTIuOS0xNzIgNDItMTggOS43LTMxLjYgMjIuMS00MC42IDM2LjJDNTEuMyAyMTEuMyA0OCAyNTkuNyA0OCAyOTZjMCA0MS40IDIyLjEgODIgNjAuMSA5Ny4xYy0xLjggNC45LTIuOSAxMC4yLTIuOSAxNS44YzAgMTcuNyAxNC4zIDMyIDMyIDMySDM2YzAtNDQtMzYtODAtMzYtODBjMC0zNi40IDQuNC04My4yIDQyLjktMTI2LjRDMTEwLjYgNjEuNiAxNzQuMSAzMiAzMzIgMzJIMTQwYy3LjUgMC0xIDAtMS42IDBjNzYuMyAwIDE0Ny44IDE1LjcgMjA3LjIgNTguOEM0MTggMTI3LjkgNDc5LjEgMTI5IDU0NCAxMjljNzAuNyAwIDEzMi4zLTEuNSAxOTIuNSAxNEM3MzYgMTQ2LjUgNzM6IDEzMiA3MzYgMTMyYzAtNTIuOS00My4xLTk2LTk2LTk2aC0xNWMtMzUuMyAwLTY0IDI4LjctNjQgNjRjMCAyNy4zIDE3LjMgNTEgNDEuNSA2MC4xek01NDQgMzUyYzIxLjIgMCA0MS03LjcgNTYtMjAuNWMxMy42LTEyIDIzLjItMjguMSAyMy4yLTQ1LjVDNjIzLjIgMjQ2IDI3My40IDY0IDMyMCA2NGgtNjRjLTQ0LjIgMC04MCAzNS44LTgwIDgwYzAgMzUuMyAyOC43IDY0IDY0IDY0SDRjLTguOCAwLTE2IDcuMi0xNiAxNnY0YzAgNDQuMiAzNS44IDgwIDgwIDgwaDE0NGMxNy43IDAgMzItMTQuMyAzMi0zMmMwLTE3LjctMTQuMy0zMi0zMi0zMmgtNHYtNjRoMTZ2NjRoMzJ2LTY0aDE2djY0aDMyVjI4OGgxNnY2NGgzMlYyODhoMzJjMTMuMyAwIDI1LjIgNS4zIDM0IDIxLjRjMy42IDYuNiA1LjQgMTQuMiA1LjQgMjIuNmMwIDE3LjctOC45IDMzLjEtMjIuNyA0NC40bC0xMS4yIDkuMnptLTI1MC02NGMtOC44IDAtMTYgNy4yLTE2IDE2djE2aC0xNmMtOC44IDAtMTYgNy4yLTE2IDE2djMyYzAgOC44IDcuMiAxNiAxNiAxNmgxNnYxNmMwIDguOCA3LjIgMTYgMTYgMTZjOC44IDAgMTYtNy4yIDE2LTE2di0xNmgxNmM4LjggMCAxNi03LjIgMTYtMTZ2LTMyYzAtOC44LTcuMi0xNi0xNi0xNmgLTE2di0xNmMwLTguOC03LjItMTYtMTYtMTZ6bTMyIDE3NmMtMTMuMyAwLTI0IDguOS0yNCAyMHMxMC43IDI0IDI0IDI0czI0LTEwLjcgMjQtMjRzLTEwLjctMjQtMjQtMjR6bS0xNDQgMGMtMTMuMyAwLTI0IDEwLjctMjQgMjRzMTAuNyAyNCAyNCAyNHMyNC0xMC43IDI0LTI0cy0xMC43LTI0LTI0LTI0eiIvPjwvc3ZnPg==" type="image/svg+xml">
+  <link rel="icon" href="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCA2NDAgNTEyIj48cGF0aCBmaWxsPSIjM0E4NkZGIiBkPSJNNjAzLjkgMTM1LjVjLTYxLTQxLjgtMTMyLjQtNTQuNy0yMDAtNTQuN0gzMzJjLTYwIDAtMTE1LjggMTIuOS0xNzIgNDItMTggOS43LTMxLjYgMjIuMS00MC42IDM2LjJDNTEuMyAyMTEuMyA0OCAyNTkuNyA0OCAyOTZjMCA0MS40IDIyLjEgODIgNjAuMSA5Ny4xYy0xLjggNC45LTIuOSAxMC4yLTIuOSAxNS44YzAgMTcuNyAxNC4zIDMyIDMyIDMySDM2YzAtNDQtMzYtODAtMzYtODBjMC0zNi40IDQuNC04My4yIDQyLjktMTI2LjRDMTEwLjYgNjEuNiAxNzQuMSAzMiAzMzIgMzJIMTQwYy3LjUgMC0xIDAtMS42IDBjNzYuMyAwIDE0Ny44IDE1LjcgMjA3LjIgNTguOEM0MTggMTI3LjkgNDc5LjEgMTI5IDU0NCAxMjljNzAuNyAwIDEzMi4zLTEuNSAxOTIuNSAxNEM3MzYgMTQ2LjUgNzM2IDEzMiA3MzYgMTMyYzAtNTIuOS00My4xLTk2LTk2LTk2aC0xNWMtMzUuMyAwLTY0IDI4LjctNjQgNjRjMCAyNy4zIDE3LjMgNTEgNDEuNSA2MC4xek01NDQgMzUyYzIxLjIgMCA0MS03LjcgNTYtMjAuNWMxMy42LTEyIDIzLjItMjguMSAyMy4yLTQ1LjVDNjIzLjIgMjQ2IDI3My40IDY0IDMyMCA2NGgtNjRjLTQ0LjIgMC04MCAzNS44LTgwIDgwYzAgMzUuMyAyOC43IDY0IDY0IDY0SDRjLTguOCAwLTE2IDcuMi0xNiAxNnY0YzAgNDQuMiAzNS44IDgwIDgwIDgwaDE0NGMxNy43IDAgMzItMTQuMyAzMi0zMmMwLTE3LjctMTQuMy0zMi0zMi0zMmgtNHYtNjRoMTZ2NjRoMzJ2LTY0aDE2djY0aDMyVjI4OGgxNnY2NGgzMlYyODhoMzJjMTMuMyAwIDI1LjIgNS4zIDM0IDIxLjRjMy42IDYuNiA1LjQgMTQuMiA1LjQgMjIuNmMwIDE3LjctOC45IDMzLjEtMjIuNyA0NC40bC0xMS4yIDkuMnptLTI1MC02NGMtOC44IDAtMTYgNy4yLTE2IDE2djE2aC0xNmMtOC44IDAtMTYgNy4yLTE2IDE2djMyYzAgOC44IDcuMiAxNiAxNiAxNmgxNnYxNmMwIDguOCA3LjIgMTYgMTYgMTZjOC44IDAgMTYtNy4yIDE2LTE2di0xNmgxNmM4LjggMCAxNi03LjIgMTYtMTZ2LTMyYzAtOC44LTcuMi0xNi0xNi0xNmgLTE2di0xNmMwLTguOC03LjItMTYtMTYtMTZ6bTMyIDE3NmMtMTMuMyAwLTI0IDguOS0yNCAyMHMxMC43IDI0IDI0IDI0czI0LTEwLjcgMjQtMjRzLTEwLjctMjQtMjQtMjR6bS0xNDQgMGMtMTMuMyAwLTI0IDEwLjctMjQgMjRzMTAuNyAyNCAyNCAyNHMyNC0xMC43IDI0LTI0cy0xMC43LTI0LTI0LTI0eiIvPjwvc3ZnPg==" type="image/svg+xml">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
   <script src="https://www.gstatic.com/firebasejs/9.6.0/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/9.6.0/firebase-database-compat.js"></script>
@@ -28,43 +28,20 @@
     .empty-state i { font-size: 2.5rem; margin-bottom: 1rem; opacity: 0.5; }
     @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
 
-    /* Barra di navigazione inferiore */
-    .nav-bar {
-      position: fixed;
-      bottom: 0;
-      left: 0;
-      right: 0;
-      height: 70px;
-      background: #1a1a1a;
-      display: flex;
-      justify-content: space-around;
-      align-items: center;
-      box-shadow: 0 -2px 10px rgba(0,0,0,0.5);
-      z-index: 100;
-    }
-    .nav-button {
-      background: none;
-      border: none;
-      color: #888;
-      cursor: pointer;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      font-size: 0.75rem;
-      padding: 0.5rem;
-      border-radius: var(--card-radius);
-      transition: all 0.2s ease;
-      min-width: 80px;
-    }
-    .nav-button i {
-      font-size: 1.5rem;
-      margin-bottom: 0.25rem;
-    }
-    .nav-button.active, .nav-button:hover {
-      color: var(--primary);
-    }
-    .nav-button.active {
-      transform: translateY(-2px);
+    .nav-bar { position: fixed; bottom: 0; left: 0; right: 0; height: 70px; background: #1a1a1a; display: flex; justify-content: space-around; align-items: center; box-shadow: 0 -2px 10px rgba(0,0,0,0.5); z-index: 100; }
+    .nav-button { background: none; border: none; color: #888; cursor: pointer; display: flex; flex-direction: column; align-items: center; font-size: 0.75rem; padding: 0.5rem; border-radius: var(--card-radius); transition: all 0.2s ease; min-width: 80px; }
+    .nav-button i { font-size: 1.5rem; margin-bottom: 0.25rem; }
+    .nav-button.active, .nav-button:hover { color: var(--primary); }
+    .nav-button.active { transform: translateY(-2px); }
+    
+    @media (max-width: 576px) {
+      .game-grid {
+        grid-template-columns: repeat(auto-fill, minmax(100px, 1fr));
+        gap: 0.75rem;
+      }
+      body {
+        padding: 1rem 1rem 80px 1rem;
+      }
     }
   </style>
 </head>
@@ -185,7 +162,6 @@
           sections[targetSection].count++;
         });
         
-        // Aggiungi stati vuoti se necessario
         for (const key in sections) {
           if (sections[key].count === 0) {
             let icon = 'fa-list-ul';
@@ -205,45 +181,36 @@
       });
     });
 
-// CANCELLA LA VECCHIA FUNZIONE setupNav E INCOLLA QUESTA
+    function setupNav() {
+        const navButtons = document.querySelectorAll('.nav-button');
+        const gameSections = document.querySelectorAll('.game-section');
 
-function setupNav() {
-    const navButtons = document.querySelectorAll('.nav-button');
-    const gameSections = document.querySelectorAll('.game-section');
+        function showSection(targetSectionId) {
+            gameSections.forEach(section => section.classList.remove('active'));
+            navButtons.forEach(button => button.classList.remove('active'));
 
-    function showSection(targetSectionId) {
-        // Nascondi tutte le sezioni e rimuovi 'active' da tutti i pulsanti
-        gameSections.forEach(section => section.classList.remove('active'));
-        navButtons.forEach(button => button.classList.remove('active'));
+            const sectionToShow = document.getElementById(targetSectionId);
+            if (sectionToShow) {
+                sectionToShow.classList.add('active');
+            }
 
-        // Mostra la sezione target
-        const sectionToShow = document.getElementById(targetSectionId);
-        if (sectionToShow) {
-            sectionToShow.classList.add('active');
+            const activeButtonId = 'btn' + targetSectionId.charAt(0).toUpperCase() + targetSectionId.slice(1).replace('Section', '');
+            const activeButton = document.getElementById(activeButtonId);
+            if (activeButton) {
+                activeButton.classList.add('active');
+            }
         }
 
-        // Trova il pulsante corrispondente e aggiungi 'active'
-        // Questo è il modo corretto, senza manipolare le stringhe in modo errato
-        const activeButtonId = 'btn' + targetSectionId.charAt(0).toUpperCase() + targetSectionId.slice(1).replace('Section', '');
-        const activeButton = document.getElementById(activeButtonId);
-        if (activeButton) {
-            activeButton.classList.add('active');
-        }
-    }
-
-    navButtons.forEach(button => {
-        button.addEventListener('click', () => {
-            // Estrai il target dal nome del pulsante (es. da "btnCurrent" a "current")
-            const target = button.id.replace('btn', '');
-            // Ricostruisci l'ID della sezione (es. "current" -> "currentSection")
-            const targetSectionId = target.charAt(0).toLowerCase() + target.slice(1) + 'Section';
-            showSection(targetSectionId);
+        navButtons.forEach(button => {
+            button.addEventListener('click', () => {
+                const target = button.id.replace('btn', '');
+                const targetSectionId = target.charAt(0).toLowerCase() + target.slice(1) + 'Section';
+                showSection(targetSectionId);
+            });
         });
-    });
-    
-    // Mostra la prima sezione ("In Corso") di default
-    showSection('currentSection');
-}
+        
+        showSection('currentSection');
+    }
   </script>
 </body>
 </html>
