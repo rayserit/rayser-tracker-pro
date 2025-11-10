@@ -4,25 +4,68 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>Libreria di Gioco</title>
-  <link rel="icon" href="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCA2NDAgNTEyIj48cGF0aCBmaWxsPSIjM0E4NkZGIiBkPSJNNjAzLjkgMTM1LjVjLTYxLTQxLjgtMTMyLjQtNTQuNy0yMDAtNTQuN0gzMzJjLTYwIDAtMTE1LjggMTIuOS0xNzIgNDItMTggOS43LTMxLjYgMjIuMS00MC42IDM2LjJDNTEuMyAyMTEuMyA0OCAyNTkuNyA0OCAyOTZjMCA0MS40IDIyLjEgODIgNjAuMSA5Ny4xYy0xLjggNC45LTIuOSAxMC4yLTIuOSAxNS44YzAgMTcuNyAxNC4zIDMyIDMyIDMySDM2YzAtNDQtMzYtODAtMzYtODBjMC0zNi40IDQuNC04My4yIDQyLjktMTI2LjRDMTEwLjYgNjEuNiAxNzQuMSAzMiAzMzIgMzJIMTQwYy3LjUgMC0xIDAtMS42IDBjNzYuMyAwIDE0Ny44IDE1LjcgMjA3LjIgNTguOEM0MTggMTI3LjkgNDc5LjEgMTI5IDU0NCAxMjljNzAuNyAwIDEzMi4zLTEuNSAxOTIuNSAxNEM3MzYgMTQ2LjUgNzM2IDEzMiA3MzYgMTMyYzAtNTIuOS00My4xLTk2LTk2LTk2aC0xNWMtMzUuMyAwLTY0IDI4LjctNjQgNjRjMCAyNy4zIDE3LjMgNTEgNDEuNSA2MC4xek01NDQgMzUyYzIxLjIgMCA0MS03LjcgNTYtMjAuNWMxMy42LTEyIDIzLjItMjguMSAyMy4yLTQ1LjVDNjIzLjIgMjQ2IDI3My40IDY0IDMyMCA2NGgtNjRjLTQ0LjIgMC04MCAzNS44LTgwIDgwYzAgMzUuMyAyOC43IDY0IDY0IDY0SDRjLTguOCAwLTE2IDcuMi0xNiAxNnY0YzAgNDQuMiAzNS44IDgwIDgwIDgwaDE0NGMxNy43IDAgMzItMTQuMyAzMi0zMmMwLTE3LjctMTQuMy0zMi0zMi0zMmgtNHYtNjRoMTZ2NjRoMzJ2LTY0aDE2djY0aDMyVjI4OGgxNnY2NGgzMlYyODhoMzJjMTMuMyAwIDI1LjIgNS4zIDM0IDIxLjRjMy42IDYuNiA1LjQgMTQuMiA1LjQgMjIuNmMwIDE3LjctOC45IDMzLjEtMjIuNyA0NC40bC0xMS4yIDkuMnptLTI1MC02NGMtOC44IDAtMTYgNy4yLTE2IDE2djE2aC0xNmMtOC44IDAtMTYgNy4yLTE2IDE2djMyYzAgOC44IDcuMiAxNiAxNiAxNmgxNnYxNmMwIDguOCA3LjIgMTYgMTYgMTZjOC44IDAgMTYtNy4yIDE2LTE2di0xNmgxNmM4LjggMCAxNi03LjIgMTYtMTZ2LTMyYzAtOC44LTcuMi0xNi0xNi0xNmgLTE2di0xNmMwLTguOC03LjItMTYtMTYtMTZ6bTMyIDE3NmMtMTMuMyAwLTI0IDguOS0yNCAyMHMxMC43IDI0IDI0IDI0czI0LTEwLjcgMjQtMjRzLTEwLjctMjQtMjQtMjR6bS0xNDQgMGMtMTMuMyAwLTI0IDEwLjctMjQgMjRzMTAuNyAyNCAyNCAyNHMyNC0xMC43IDI0LTI0cy0xMC43LTI0LTI0LTI0eiIvPjwvc3ZnPg==" type="image/svg+xml">
+  <link rel="icon" href="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCA2NDAgNTEyIj48cGF0aCBmaWxsPSIjM0E4NkZGIiBkPSJNNjAzLjkgMTM1LjVjLTYxLTQxLjgtMTMyLjQtNTQuNy0yMDAtNTQuN0gzMzJjLTYwIDAtMTE1LjggMTIuOS0xNzIgNDItMTggOS43LTMxLjYgMjIuMS00MC42IDM2LjJDNTEuMyAyMTEuMyA0OCAyNTkuNyA0OCAyOTZjMCA0MS40IDIyLjEgODIgNjAuMSA5Ny4xYy0xLjggNC45LTIuOSAxMC4yLTIuOSAxNS44YzAgMTcuNyAxNC4zIDMyIDMyIDMySDM2YzAtNDQtMzYtODAtMzYtODBjMC0zNi40IDQuNC04My4yIDQyLjktMTI2LjRDMTEwLjYgNjEuNiAxNzQuMSAzMiAzMzIgMzJIMTQwYy3LjUgMC0xIDAtMS42IDBjNzYuMyAwIDE0Ny44IDE1LjcgMjA3LjIgNTguOEM0MTggMTI3LjkgNDc5LjEgMTI5IDU0NCAxMjljNzAuNyAwIDEzMi4zLTEuNSAxOTIuNSAxNEM3MzYgMTQ2LjUgNzM6IDEzMiA3MzYgMTMyYzAtNTIuOS00My4xLTk2LTk2LTk2aC0xNWMtMzUuMyAwLTY0IDI4LjctNjQgNjRjMCAyNy4zIDE3LjMgNTEgNDEuNSA2MC4xek01NDQgMzUyYzIxLjIgMCA0MS03LjcgNTYtMjAuNWMxMy42LTEyIDIzLjItMjguMSAyMy4yLTQ1LjVDNjIzLjIgMjQ2IDI3My40IDY0IDMyMCA2NGgtNjRjLTQ0LjIgMC04MCAzNS44LTgwIDgwYzAgMzUuMyAyOC43IDY0IDY0IDY0SDRjLTguOCAwLTE2IDcuMi0xNiAxNnY0YzAgNDQuMiAzNS44IDgwIDgwIDgwaDE0NGMxNy43IDAgMzItMTQuMyAzMi0zMmMwLTE3LjctMTQuMy0zMi0zMi0zMmgtNHYtNjRoMTZ2NjRoMzJ2LTY0aDE2djY0aDMyVjI4OGgxNnY2NGgzMlYyODhoMzJjMTMuMyAwIDI1LjIgNS4zIDM0IDIxLjRjMy42IDYuNiA1LjQgMTQuMiA1LjQgMjIuNmMwIDE3LjctOC45IDMzLjEtMjIuNyA0NC40bC0xMS4yIDkuMnptLTI1MC02NGMtOC44IDAtMTYgNy4yLTE2IDE2djE2aC0xNmMtOC44IDAtMTYgNy4yLTE2IDE2djMyYzAgOC44IDcuMiAxNiAxNiAxNmgxNnYxNmMwIDguOCA3LjIgMTYgMTYgMTZjOC44IDAgMTYtNy4yIDE2LTE2di0xNmgxNmM4LjggMCAxNi03LjIgMTYtMTZ2LTMyYzAtOC44LTcuMi0xNi0xNi0xNmgLTE2di0xNmMwLTguOC03LjItMTYtMTYtMTZ6bTMyIDE3NmMtMTMuMyAwLTI0IDguOS0yNCAyMHMxMC43IDI0IDI0IDI0czI0LTEwLjcgMjQtMjRzLTEwLjctMjQtMjQtMjR6bS0xNDQgMGMtMTMuMyAwLTI0IDEwLjctMjQgMjRzMTAuNyAyNCAyNCAyNHMyNC0xMC43IDI0LTI0cy0xMC43LTI0LTI0LTI0eiIvPjwvc3ZnPg==" type="image/svg+xml">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
   <script src="https://www.gstatic.com/firebasejs/9.6.0/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/9.6.0/firebase-database-compat.js"></script>
   <style>
     :root { --primary: #3A86FF; --secondary: #00B4D8; --game-bg: #1e1e1e; --card-radius: 8px; }
-    body { font-family: 'Segoe UI', system-ui, sans-serif; margin: 0; padding: 1.5rem; background: linear-gradient(135deg, #1a1a1a 0%, #2d2d2d 100%); color: #f5f5f5; }
+    body { font-family: 'Segoe UI', system-ui, sans-serif; margin: 0; padding: 1.5rem 1.5rem 100px 1.5rem; background: linear-gradient(135deg, #1a1a1a 0%, #2d2d2d 100%); color: #f5f5f5; }
     .header { text-align: center; margin-bottom: 2rem; }
     .header h1 { color: var(--primary); }
     .header .user-email { font-size: 1.2rem; color: #aaa; }
+    .game-section { display: none; }
+    .game-section.active { display: block; }
     .section-title { font-size: 1.5rem; color: var(--primary); border-bottom: 2px solid var(--primary); padding-bottom: 0.5rem; margin-bottom: 1.5rem; }
-    .game-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 1.5rem; margin-bottom: 2rem; }
+    .game-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(130px, 1fr)); gap: 1rem; }
     .game { background: var(--game-bg); border-radius: var(--card-radius); overflow: hidden; position: relative; box-shadow: 0 4px 12px rgba(0,0,0,.25); }
-    .game img { width: 100%; display: block; }
-    .game .title { padding: 0.75rem; font-size: 0.9rem; text-align: center; background: rgba(0,0,0,0.3); }
-    .platinum-icon { position: absolute; top: 8px; right: 8px; width: 24px; height: 24px; filter: drop-shadow(0 0 3px black); }
+    .game img { width: 100%; display: block; aspect-ratio: 3/4; object-fit: cover; }
+    .game .title { padding: 0.5rem; font-size: 0.8rem; text-align: center; background: rgba(0,0,0,0.3); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .platinum-icon { position: absolute; top: 8px; right: 8px; width: 24px; height: 24px; filter: drop-shadow(0 0 3px black); z-index: 1; }
     #loading { text-align: center; font-size: 1.5rem; padding: 4rem 0; }
     .loading-spinner { border: 4px solid rgba(255,255,255,.1); border-radius: 50%; border-top: 4px solid var(--primary); width: 40px; height: 40px; animation: spin 1s linear infinite; margin: 0 auto 1rem; }
+    .empty-state { padding: 3rem 1rem; text-align: center; color: #888; }
+    .empty-state i { font-size: 2.5rem; margin-bottom: 1rem; opacity: 0.5; }
     @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+
+    /* Barra di navigazione inferiore */
+    .nav-bar {
+      position: fixed;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      height: 70px;
+      background: #1a1a1a;
+      display: flex;
+      justify-content: space-around;
+      align-items: center;
+      box-shadow: 0 -2px 10px rgba(0,0,0,0.5);
+      z-index: 100;
+    }
+    .nav-button {
+      background: none;
+      border: none;
+      color: #888;
+      cursor: pointer;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      font-size: 0.75rem;
+      padding: 0.5rem;
+      border-radius: var(--card-radius);
+      transition: all 0.2s ease;
+      min-width: 80px;
+    }
+    .nav-button i {
+      font-size: 1.5rem;
+      margin-bottom: 0.25rem;
+    }
+    .nav-button.active, .nav-button:hover {
+      color: var(--primary);
+    }
+    .nav-button.active {
+      transform: translateY(-2px);
+    }
   </style>
 </head>
 <body>
@@ -36,14 +79,37 @@
     <p>Caricamento libreria in corso...</p>
   </div>
 
-  <div id="libraryContent" style="display: none;">
-    <h2 class="section-title">Giochi in Corso</h2>
-    <div class="game-grid" id="currentGrid"></div>
-    <h2 class="section-title">Backlog</h2>
-    <div class="game-grid" id="backlogGrid"></div>
-    <h2 class="section-title">Completati</h2>
-    <div class="game-grid" id="completedGrid"></div>
-  </div>
+  <main id="libraryContent" style="display: none;">
+    <section id="currentSection" class="game-section">
+      <h2 class="section-title">Giochi in Corso</h2>
+      <div class="game-grid" id="currentGrid"></div>
+    </section>
+
+    <section id="backlogSection" class="game-section">
+      <h2 class="section-title">Backlog</h2>
+      <div class="game-grid" id="backlogGrid"></div>
+    </section>
+
+    <section id="completedSection" class="game-section">
+      <h2 class="section-title">Completati</h2>
+      <div class="game-grid" id="completedGrid"></div>
+    </section>
+  </main>
+
+  <footer class="nav-bar">
+    <button id="btnCurrent" class="nav-button">
+      <i class="fas fa-gamepad"></i>
+      <span>In Corso</span>
+    </button>
+    <button id="btnBacklog" class="nav-button">
+      <i class="fas fa-list-ul"></i>
+      <span>Backlog</span>
+    </button>
+    <button id="btnCompleted" class="nav-button">
+      <i class="fas fa-trophy"></i>
+      <span>Completati</span>
+    </button>
+  </footer>
 
   <script>
     const firebaseConfig = {
@@ -68,6 +134,12 @@
         document.getElementById('loading').innerHTML = '<h1>ID utente non specificato.</h1>';
         return;
       }
+      
+      const sections = {
+        current: { grid: document.getElementById('currentGrid'), count: 0 },
+        backlog: { grid: document.getElementById('backlogGrid'), count: 0 },
+        completed: { grid: document.getElementById('completedGrid'), count: 0 }
+      };
 
       database.ref(`users/${userId}/gameTracker`).once('value').then(snapshot => {
         const data = snapshot.val();
@@ -76,8 +148,7 @@
           return;
         }
 
-        const userEmail = data.gameStates.userEmail || userId.substring(0, 8) + '...';
-        document.getElementById('userEmail').textContent = userEmail;
+        document.getElementById('userEmail').textContent = data.gameStates?.userEmail || 'un utente';
         
         const games = data.games;
         const gameStates = data.gameStates || {};
@@ -101,27 +172,61 @@
           gameElement.className = 'game';
           gameElement.innerHTML = `
             ${hasPlatinum ? `<img src="${PLATINUM_ICON_URL}" class="platinum-icon" alt="Platino"/>` : ''}
-            <img src="${imageUrl}" alt="${game.title}" onerror="this.style.display='none'">
-            <div class="title">${game.title}</div>
+            <img src="${imageUrl}" alt="${game.title}" onerror="this.src='about:blank'; this.style.display='none'">
+            <div class="title" title="${game.title}">${game.title}</div>
           `;
 
-          if (isCurrent) {
-            document.getElementById('currentGrid').appendChild(gameElement);
-          } else if (isPlayed) {
-            document.getElementById('completedGrid').appendChild(gameElement);
-          } else {
-            document.getElementById('backlogGrid').appendChild(gameElement);
-          }
+          let targetSection;
+          if (isCurrent) { targetSection = 'current'; }
+          else if (isPlayed) { targetSection = 'completed'; }
+          else { targetSection = 'backlog'; }
+          
+          sections[targetSection].grid.appendChild(gameElement);
+          sections[targetSection].count++;
         });
+        
+        // Aggiungi stati vuoti se necessario
+        for (const key in sections) {
+          if (sections[key].count === 0) {
+            let icon = 'fa-list-ul';
+            if (key === 'current') icon = 'fa-gamepad';
+            if (key === 'completed') icon = 'fa-trophy';
+            sections[key].grid.innerHTML = `<div class="empty-state"><i class="fas ${icon}"></i><p>Nessun gioco in questa sezione.</p></div>`;
+          }
+        }
 
         document.getElementById('loading').style.display = 'none';
         document.getElementById('libraryContent').style.display = 'block';
+        setupNav();
 
       }).catch(error => {
         console.error("Errore nel recupero dati:", error);
         document.getElementById('loading').innerHTML = '<h1>Si è verificato un errore nel caricamento della libreria.</h1>';
       });
     });
+
+    function setupNav() {
+        const navButtons = document.querySelectorAll('.nav-button');
+        const gameSections = document.querySelectorAll('.game-section');
+
+        function showSection(sectionId) {
+            gameSections.forEach(section => section.classList.remove('active'));
+            navButtons.forEach(button => button.classList.remove('active'));
+
+            document.getElementById(sectionId).classList.add('active');
+            document.getElementById(`btn${sectionId.replace('Section', '')}`).classList.add('active');
+        }
+
+        navButtons.forEach(button => {
+            button.addEventListener('click', () => {
+                const targetSection = button.id.replace('btn', '') + 'Section';
+                showSection(targetSection);
+            });
+        });
+        
+        // Mostra la prima sezione di default
+        showSection('currentSection');
+    }
   </script>
 </body>
 </html>
