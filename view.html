@@ -142,6 +142,8 @@
           const gameKey = game.title.toLowerCase().replace(/[^a-z0-9]/gi, "-");
           const isCurrent = gameStates['current_' + gameKey] === 'true';
           const isPlayed = gameStates['played_' + gameKey] === 'true';
+          // --- CORREZIONE DEL BUG ---
+          // Aggiunto l'underscore mancante
           const hasPlatinum = gameStates['platinum_' + gameKey] === 'true';
           const imageUrl = gameStates['image_' + gameKey] || game.image;
 
@@ -193,9 +195,9 @@
             if (sectionToShow) {
                 sectionToShow.classList.add('active');
             }
-
-            const activeButtonId = 'btn' + targetSectionId.charAt(0).toUpperCase() + targetSectionId.slice(1).replace('Section', '');
-            const activeButton = document.getElementById(activeButtonId);
+            
+            const btnId = 'btn' + targetSectionId.charAt(0).toUpperCase() + targetSectionId.slice(1).replace('Section', '');
+            const activeButton = document.getElementById(btnId);
             if (activeButton) {
                 activeButton.classList.add('active');
             }
